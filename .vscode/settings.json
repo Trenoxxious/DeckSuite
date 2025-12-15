@@ -27,7 +27,8 @@
         "StaticPopup_Show",
         "ReloadUI",
         "ChatEdit_SendText",
-        "DEFAULT_CHAT_FRAME"
+        "DEFAULT_CHAT_FRAME",
+        "FCF_SavePositionAndDimensions"
     ],
     "Lua.type.weakUnionCheck": true
 }

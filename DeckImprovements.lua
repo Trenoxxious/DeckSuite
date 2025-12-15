@@ -97,21 +97,21 @@ local function CreateChatChannelUI()
 
 	frame.title = frame.TitleText or frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	if frame.TitleText then
-		frame.TitleText:SetText("|cFF65D6E7NoxxDI|r New Chat")
+		frame.TitleText:SetText("|cFF65D6E7NoxxDI:|r New Chat")
 	else
 		frame.title:SetPoint("TOP", frame, "TOP", 0, -6)
-		frame.title:SetText("|cFF65D6E7NoxxDI|r New Chat")
+		frame.title:SetText("|cFF65D6E7NoxxDI:|r New Chat")
 	end
 
 	local channels = {
-		{name = "Say", command = "/s ", backdropColor = {1, 1, 1, 0.15}, borderColor = {1, 1, 1, 0.5}, textColor = {1, 1, 1, 1}},
-		{name = "Party", command = "/p ", backdropColor = {0.67, 0.67, 1, 0.15}, borderColor = {0.67, 0.67, 1, 0.5}, textColor = {0.67, 0.67, 1, 1}},
-		{name = "Raid", command = "/r ", backdropColor = {1, 0.5, 0, 0.15}, borderColor = {1, 0.5, 0, 0.5}, textColor = {1, 0.5, 0, 1}},
+		{name = "Say", command = "/say ", backdropColor = {1, 1, 1, 0.15}, borderColor = {1, 1, 1, 0.5}, textColor = {1, 1, 1, 1}},
+		{name = "Party", command = "/party ", backdropColor = {0.67, 0.67, 1, 0.15}, borderColor = {0.67, 0.67, 1, 0.5}, textColor = {0.67, 0.67, 1, 1}},
+		{name = "Raid", command = "/raid ", backdropColor = {1, 0.5, 0, 0.15}, borderColor = {1, 0.5, 0, 0.5}, textColor = {1, 0.5, 0, 1}},
 		{name = "General", command = "/1 ", backdropColor = {1, 0.75, 0.75, 0.15}, borderColor = {1, 0.75, 0.75, 0.5}, textColor = {1, 0.75, 0.75, 1}},
 		{name = "Trade", command = "/2 ", backdropColor = {1, 0.75, 0.75, 0.15}, borderColor = {1, 0.75, 0.75, 0.5}, textColor = {1, 0.75, 0.75, 1}},
-		{name = "Guild", command = "/g ", backdropColor = {0.25, 1, 0.25, 0.15}, borderColor = {0.25, 1, 0.25, 0.5}, textColor = {0.25, 1 , .25 , .8}},
-		{name = "Officer", command = "/o ", backdropColor = {0.25, 0.75, 0.25, 0.15}, borderColor = {0.25, 0.75, 0.25, 0.5}, textColor = {0.25, 0.75, 0.25, 1}},
-		{name = "Whisper", command = "/w ", backdropColor = {1, 0.5, 1, 0.15}, borderColor = {1, 0.5, 1, 0.5}, textColor = {1, 0.5, 1, 1}}
+		{name = "Guild", command = "/guild ", backdropColor = {0.25, 1, 0.25, 0.15}, borderColor = {0.25, 1, 0.25, 0.5}, textColor = {0.25, 1 , .25 , .8}},
+		{name = "Officer", command = "/officer ", backdropColor = {0.25, 0.75, 0.25, 0.15}, borderColor = {0.25, 0.75, 0.25, 0.5}, textColor = {0.25, 0.75, 0.25, 1}},
+		{name = "New Whisper", command = "/w ", backdropColor = {1, 0.5, 1, 0.15}, borderColor = {1, 0.5, 1, 0.5}, textColor = {1, 0.5, 1, 1}}
 	}
 
 	local btnW, btnH = 340, 40
@@ -213,10 +213,10 @@ local function CreateReplyUI()
 
 	frame.title = frame.TitleText or frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	if frame.TitleText then
-		frame.TitleText:SetText("|cFF65D6E7NoxxDI|r Recent Whispers")
+		frame.TitleText:SetText("|cFF65D6E7NoxxDI:|r Recent Whispers")
 	else
 		frame.title:SetPoint("TOP", frame, "TOP", 0, -6)
-		frame.title:SetText("|cFF65D6E7NoxxDI|r Recent Whispers")
+		frame.title:SetText("|cFF65D6E7NoxxDI:|r Recent Whispers")
 	end
 
 	local visibleCount = 5
@@ -277,7 +277,7 @@ local function CreateReplyUI()
 
 	-- Close button at the bottom
 	local closeBtn = CreateFrame("Frame", "DeckImpReplyCloseBtn", frame, "BackdropTemplate")
-	closeBtn:SetSize(btnW, 50)
+	closeBtn:SetSize(btnW, 40)
 	closeBtn:SetPoint("BOTTOM", frame, "BOTTOM", 0, 15)
 	closeBtn:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
