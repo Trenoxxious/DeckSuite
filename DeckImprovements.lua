@@ -84,7 +84,7 @@ local function CreateChatChannelUI()
 	if DeckImprovementsChatChannelFrame then return end
 
 	local frame = CreateFrame("Frame", "DeckImprovementsChatChannelFrame", UIParent, "BasicFrameTemplateWithInset")
-	frame:SetSize(400, 450)
+	frame:SetSize(380, 450)
 	frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 	frame:Hide()
 	frame:SetFrameStrata("DIALOG")
@@ -191,7 +191,7 @@ local function CreateReplyUI()
 	if DeckImprovementsReplyFrame then return end
 
 	local frame = CreateFrame("Frame", "DeckImprovementsReplyFrame", UIParent, "BasicFrameTemplateWithInset")
-	frame:SetSize(400, 450)
+	frame:SetSize(380, 450)
 	frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 	frame:Hide()
 	frame:SetFrameStrata("DIALOG")
@@ -354,6 +354,10 @@ local function CreateReplyUI()
 			PlaySound(808)  -- Close sound
 		else
 			PlaySound(808)  -- Open sound
+			-- Close new chat interface if it's open
+			if DeckImprovementsChatChannelFrame and DeckImprovementsChatChannelFrame:IsShown() then
+				DeckImprovementsChatChannelFrame:Hide()
+			end
 			frame:Show()
 			frame:Update()
 		end
@@ -391,6 +395,10 @@ local function CreateReplyUI()
 			PlaySound(808)
 		else
 			PlaySound(808)
+			-- Close reply interface if it's open
+			if DeckImprovementsReplyFrame and DeckImprovementsReplyFrame:IsShown() then
+				DeckImprovementsReplyFrame:Hide()
+			end
 			if chatFrame then
 				chatFrame:Show()
 			end
