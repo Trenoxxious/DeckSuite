@@ -84,7 +84,7 @@ local function CreateChatChannelUI()
 	if DeckImprovementsChatChannelFrame then return end
 
 	local frame = CreateFrame("Frame", "DeckImprovementsChatChannelFrame", UIParent, "BasicFrameTemplateWithInset")
-	frame:SetSize(380, 450)
+	frame:SetSize(380, 550)
 	frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 	frame:Hide()
 	frame:SetFrameStrata("DIALOG")
@@ -97,21 +97,24 @@ local function CreateChatChannelUI()
 
 	frame.title = frame.TitleText or frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	if frame.TitleText then
-		frame.TitleText:SetText("New Chat")
+		frame.TitleText:SetText("|cFF65D6E7NoxxDI|r New Chat")
 	else
 		frame.title:SetPoint("TOP", frame, "TOP", 0, -6)
-		frame.title:SetText("New Chat")
+		frame.title:SetText("|cFF65D6E7NoxxDI|r New Chat")
 	end
 
 	local channels = {
-		{name = "Say", command = "/s "},
-		{name = "Party", command = "/p "},
-		{name = "Guild", command = "/g "},
-		{name = "Officer", command = "/o "},
-		{name = "Whisper", command = "/w "}
+		{name = "Say", command = "/s ", backdropColor = {1, 1, 1, 0.15}, borderColor = {1, 1, 1, 0.5}, textColor = {1, 1, 1, 1}},
+		{name = "Party", command = "/p ", backdropColor = {0.67, 0.67, 1, 0.15}, borderColor = {0.67, 0.67, 1, 0.5}, textColor = {0.67, 0.67, 1, 1}},
+		{name = "Raid", command = "/r ", backdropColor = {1, 0.5, 0, 0.15}, borderColor = {1, 0.5, 0, 0.5}, textColor = {1, 0.5, 0, 1}},
+		{name = "General", command = "/1 ", backdropColor = {1, 0.75, 0.75, 0.15}, borderColor = {1, 0.75, 0.75, 0.5}, textColor = {1, 0.75, 0.75, 1}},
+		{name = "Trade", command = "/2 ", backdropColor = {1, 0.75, 0.75, 0.15}, borderColor = {1, 0.75, 0.75, 0.5}, textColor = {1, 0.75, 0.75, 1}},
+		{name = "Guild", command = "/g ", backdropColor = {0.25, 1, 0.25, 0.15}, borderColor = {0.25, 1, 0.25, 0.5}, textColor = {0.25, 1 , .25 , .8}},
+		{name = "Officer", command = "/o ", backdropColor = {0.25, 0.75, 0.25, 0.15}, borderColor = {0.25, 0.75, 0.25, 0.5}, textColor = {0.25, 0.75, 0.25, 1}},
+		{name = "Whisper", command = "/w ", backdropColor = {1, 0.5, 1, 0.15}, borderColor = {1, 0.5, 1, 0.5}, textColor = {1, 0.5, 1, 1}}
 	}
 
-	local btnW, btnH = 340, 60
+	local btnW, btnH = 340, 40
 	local startY = -40
 
 	for i, channel in ipairs(channels) do
@@ -124,8 +127,8 @@ local function CreateChatChannelUI()
 			tile = true, tileSize = 16, edgeSize = 12,
 			insets = {left = 3, right = 3, top = 3, bottom = 3}
 		})
-		btn:SetBackdropColor(0.1, 0.1, 0.15, 0.9)
-		btn:SetBackdropBorderColor(0.4, 0.4, 0.5, 1)
+		btn:SetBackdropColor(unpack(channel.backdropColor))
+		btn:SetBackdropBorderColor(unpack(channel.borderColor))
 		btn:EnableMouse(true)
 
 		-- Create channel name text
@@ -133,15 +136,21 @@ local function CreateChatChannelUI()
 		nameText:SetPoint("CENTER", btn, "CENTER", 0, 0)
 		nameText:SetTextColor(1, 0.82, 0)
 		nameText:SetText(channel.name)
+		nameText:SetTextColor(unpack(channel.textColor))
 
-		-- Hover effect
+		-- Store original colors for hover effect
+		btn.originalBackdropColor = channel.backdropColor
+		btn.originalBorderColor = channel.borderColor
+
+		-- Hover effect - brighten the colors
 		btn:SetScript("OnEnter", function(self)
-			self:SetBackdropColor(0.2, 0.2, 0.3, 1)
-			self:SetBackdropBorderColor(0.8, 0.8, 0.9, 1)
+			local bc = self.originalBackdropColor
+			self:SetBackdropColor(bc[1], bc[2], bc[3], 0.4)
+			self:SetBackdropBorderColor(bc[1], bc[2], bc[3], 1)
 		end)
 		btn:SetScript("OnLeave", function(self)
-			self:SetBackdropColor(0.1, 0.1, 0.15, 0.9)
-			self:SetBackdropBorderColor(0.4, 0.4, 0.5, 1)
+			self:SetBackdropColor(unpack(self.originalBackdropColor))
+			self:SetBackdropBorderColor(unpack(self.originalBorderColor))
 		end)
 
 		-- Click handler
@@ -154,7 +163,7 @@ local function CreateChatChannelUI()
 
 	-- Close button at the bottom
 	local closeBtn = CreateFrame("Frame", "DeckImpChatChannelCloseBtn", frame, "BackdropTemplate")
-	closeBtn:SetSize(btnW, 50)
+	closeBtn:SetSize(btnW, 40)
 	closeBtn:SetPoint("BOTTOM", frame, "BOTTOM", 0, 15)
 	closeBtn:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -204,10 +213,10 @@ local function CreateReplyUI()
 
 	frame.title = frame.TitleText or frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	if frame.TitleText then
-		frame.TitleText:SetText("Recent Whispers")
+		frame.TitleText:SetText("|cFF65D6E7NoxxDI|r Recent Whispers")
 	else
 		frame.title:SetPoint("TOP", frame, "TOP", 0, -6)
-		frame.title:SetText("Recent Whispers")
+		frame.title:SetText("|cFF65D6E7NoxxDI|r Recent Whispers")
 	end
 
 	local visibleCount = 5
