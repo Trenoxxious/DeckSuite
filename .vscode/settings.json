@@ -28,7 +28,11 @@
         "ReloadUI",
         "ChatEdit_SendText",
         "DEFAULT_CHAT_FRAME",
-        "FCF_SavePositionAndDimensions"
+        "FCF_SavePositionAndDimensions",
+        "NUM_CHAT_WINDOWS",
+        "ToggleDropDownMenu",
+        "PlayerFrame",
+        "TargetFrame"
     ],
     "Lua.type.weakUnionCheck": true
 }
