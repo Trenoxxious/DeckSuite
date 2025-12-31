@@ -34,7 +34,7 @@ function DeckSuite_CreateCustomChatFrame()
 
     -- Main chat container frame
     local mainFrame = CreateFrame("Frame", "DeckSuiteMainChatFrame", UIParent, "BackdropTemplate")
-    mainFrame:SetSize(500, 175)
+    mainFrame:SetSize(500, 185)
     mainFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
     mainFrame:SetBackdrop({
         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
