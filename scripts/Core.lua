@@ -4,27 +4,15 @@ eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
 
 local function InitializeUI()
-	DeckSuite_HideChatButtons()
-	DeckSuite_ScaleChatButtonFrame()
-	DeckSuite_ReplaceButtonIcons()
+	-- Initialize custom chat frame (replaces default chat)
+	DeckSuite_CreateCustomChatFrame()
+	DeckSuite_SetupChatKeyBindings()
+	DeckSuite_HideDefaultChat()
+
+	-- Initialize other UI components
 	DeckSuite_CreateChatChannelUI()
 	DeckSuite_CreateReplyUI()
 	DeckSuite_InitializeUnitFrames()
-
-	hooksecurefunc("FCF_UpdateButtonSide", function()
-		DeckSuite_ScaleChatButtonFrame()
-		DeckSuite_ReplaceButtonIcons()
-	end)
-
-	for i = 1, NUM_CHAT_WINDOWS do
-		local frame = _G["ChatFrame" .. i]
-		if frame then
-			frame:HookScript("OnShow", function()
-				DeckSuite_ScaleChatButtonFrame()
-				DeckSuite_ReplaceButtonIcons()
-			end)
-		end
-	end
 end
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)

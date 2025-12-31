@@ -35,6 +35,7 @@ function DeckSuite_CreatePlayerFrame()
 	local portraitFrame = CreateFrame("Button", "DeckSuitePlayerFrame", UIParent, "SecureUnitButtonTemplate,BackdropTemplate")
 	portraitFrame:SetSize(FRAME_WIDTH, FRAME_HEIGHT)
 	portraitFrame:SetPoint("CENTER", UIParent, "CENTER", -260, -100)
+    portraitFrame:SetFrameStrata("LOW")
 	portraitFrame:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -58,7 +59,7 @@ function DeckSuite_CreatePlayerFrame()
 
 
 	local nameText = portraitFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	nameText:SetPoint("BOTTOMLEFT", portrait, "TOP", -30, 5)
+	nameText:SetPoint("BOTTOMLEFT", portrait, "TOP", -32, 7)
 	nameText:SetJustifyH("LEFT")
 	nameText:SetTextColor(1, 1, 1, 1)
 	portraitFrame.nameText = nameText
@@ -166,6 +167,7 @@ function DeckSuite_CreateTargetFrame()
 	frame:SetBackdropColor(0, 0, 0, 0.9)
 	frame:SetBackdropBorderColor(1, 1, 1, 0.8)
 	frame:RegisterForClicks("AnyUp")
+    frame:SetFrameStrata("LOW")
 	frame:SetAttribute("unit", "target")
 	frame:SetAttribute("*type1", "target")
 	frame:SetAttribute("*type2", "togglemenu")
@@ -179,7 +181,7 @@ function DeckSuite_CreateTargetFrame()
 
 
 	local nameText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	nameText:SetPoint("BOTTOMRIGHT", portrait, "TOP", 30, 5)
+	nameText:SetPoint("BOTTOMRIGHT", portrait, "TOP", 32, 7)
 	nameText:SetJustifyH("RIGHT")
 	nameText:SetTextColor(1, 1, 1, 1)
 	frame.nameText = nameText

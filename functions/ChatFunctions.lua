@@ -1,5 +1,3 @@
-local ADDON_NAME = "DeckSuite"
-
 function DeckSuite_HideChatButtons()
 	if ChatFrameChannelButton then
 		ChatFrameChannelButton:Hide()
@@ -26,6 +24,9 @@ function DeckSuite_ScaleChatButtonFrame()
 
         if chatFrame then
             chatFrame:SetSize(300, 180)
+            chatFrame:ClearAllPoints()
+            chatFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 35, -10)
+            chatFrame:SetUserPlaced(true)
         end
 	end
 end

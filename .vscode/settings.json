@@ -32,7 +32,11 @@
         "NUM_CHAT_WINDOWS",
         "ToggleDropDownMenu",
         "PlayerFrame",
-        "TargetFrame"
+        "TargetFrame",
+        "GeneralDockManager",
+        "QuickJoinToastButton",
+        "ChatFrame1EditBox",
+        "SetItemRef"
     ],
     "Lua.type.weakUnionCheck": true
 }

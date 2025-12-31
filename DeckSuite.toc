@@ -14,6 +14,7 @@ functions\ChatFunctions.lua
 functions\WhisperTracking.lua
 
 # Interface
+interface\CustomChatFrame.lua
 interface\ChatChannelUI.lua
 interface\ReplyUI.lua
 interface\UnitFrames.lua
