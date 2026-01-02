@@ -1,8 +1,8 @@
 ## Interface: 11508
-## Title: |cFF65D6E7DeckSuite|r |cFF9BF2D8v2.0.0|r
+## Title: |cFF65D6E7DeckSuite|r |cFF9BF2D8v1.0.0|r
 ## Notes: Quality of life improvements for playing on Steam Deck.
 ## Author: Noxxious
-## Version: 2.0.0
+## Version: 1.0.0
 ## X-Curse-Project-ID: 981664
 ## X-Category: Interface Enhancements
 ## X-Compatible-With: 11508

@@ -4,12 +4,9 @@ eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
 
 local function InitializeUI()
-	-- Initialize custom chat frame (replaces default chat)
 	DeckSuite_CreateCustomChatFrame()
 	DeckSuite_SetupChatKeyBindings()
 	DeckSuite_HideDefaultChat()
-
-	-- Initialize other UI components
 	DeckSuite_CreateChatChannelUI()
 	DeckSuite_CreateReplyUI()
 	DeckSuite_InitializeUnitFrames()

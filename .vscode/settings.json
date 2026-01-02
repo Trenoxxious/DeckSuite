@@ -36,7 +36,9 @@
         "GeneralDockManager",
         "QuickJoinToastButton",
         "ChatFrame1EditBox",
-        "SetItemRef"
+        "SetItemRef",
+        "ComboFrame",
+        "CompactRaidFrameManager"
     ],
     "Lua.type.weakUnionCheck": true
 }
