@@ -205,6 +205,12 @@ function DeckSuite_CreatePlayerFrame()
 	portrait:SetCamera(0)
 	portraitFrame.portrait = portrait
 
+	C_Timer.After(4.0, function()
+		if portrait then
+			portrait:SetUnit("player")
+			portrait:SetCamera(0)
+		end
+	end)
 
 	local nameText = portraitFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	nameText:SetPoint("BOTTOMLEFT", portrait, "TOP", -32, 7)
@@ -293,7 +299,15 @@ function DeckSuite_CreatePlayerFrame()
 	portraitFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 	portraitFrame:SetScript("OnEvent", function(self, event, unit)
-		if event == "PLAYER_ENTERING_WORLD" or (unit and unit == "player") then
+		if event == "PLAYER_ENTERING_WORLD" then
+			UpdatePlayerFrame()
+			C_Timer.After(4.0, function()
+				if portrait then
+					portrait:SetUnit("player")
+					portrait:SetCamera(0)
+				end
+			end)
+		elseif unit and unit == "player" then
 			UpdatePlayerFrame()
 		end
 	end)
@@ -345,7 +359,6 @@ function DeckSuite_CreateTargetFrame()
 	portrait:SetPoint("RIGHT", frame, "RIGHT", -5, 0)
 	portrait:SetCamera(0)
 	frame.portrait = portrait
-
 
 	local nameText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	nameText:SetPoint("BOTTOMRIGHT", portrait, "TOP", 32, 7)
@@ -488,10 +501,34 @@ function DeckSuite_CreateTargetFrame()
 	thankYouButton:Hide()
 	frame.thankYouButton = thankYouButton
 
+	local questMarker = CreateFrame("Frame", nil, frame)
+	questMarker:SetSize(32, 32)
+	questMarker:SetPoint("TOPRIGHT", portrait, "TOPRIGHT", 16, -42)
+	questMarker:SetFrameStrata("LOW")
+	questMarker:SetFrameLevel(50)
+	questMarker:Hide()
+
+	local questTexture = questMarker:CreateTexture(nil, "ARTWORK")
+	questTexture:SetAllPoints(questMarker)
+
+	frame.questMarker = questMarker
+	frame.questMarkerTexture = questTexture
+
 	local function UpdateTargetFrame()
 		if not UnitExists("target") then
 			frame:Hide()
 			return
+		end
+
+		if Questie and Questie.API and Questie.API.isReady then
+			local questIcon = Questie.API.GetQuestObjectiveIconForUnit(UnitGUID("target"))
+
+			if questIcon then
+				frame.questMarkerTexture:SetTexture(questIcon)
+				frame.questMarker:Show()
+			else
+				frame.questMarker:Hide()
+			end
 		end
 
 		frame:Show()
@@ -510,6 +547,7 @@ function DeckSuite_CreateTargetFrame()
 
 		frame.portrait:SetUnit("target")
 		frame.portrait:SetPortraitZoom(1)
+		frame.portrait:SetCamera(0)
 
 		local r, g, b = 0.9, 0.3, 0.3
 		if UnitIsPlayer("target") then
@@ -649,27 +687,29 @@ function DeckSuite_CreateComboPointDisplay()
 	end
 
 	local function UpdateComboPoints()
-		local comboPoints = GetComboPoints("player", "target")
+        if (UnitClass("player") == "Rogue") then
+            local comboPoints = GetComboPoints("player", "target")
 
-		comboFrame:Show()
+            comboFrame:Show()
 
-		if comboPoints == 5 then
-			-- All 5 combo points - show special "all" texture
-			for i = 1, 5 do
-				comboFrame.dots[i].activeTex:Hide()
-				comboFrame.dots[i].allTex:Show()
-			end
-		else
-			-- Normal combo point display
-			for i = 1, 5 do
-				comboFrame.dots[i].allTex:Hide()
-				if i <= comboPoints then
-					comboFrame.dots[i].activeTex:Show()
-				else
-					comboFrame.dots[i].activeTex:Hide()
-				end
-			end
-		end
+            if comboPoints == 5 then
+                -- All 5 combo points - show special "all" texture
+                for i = 1, 5 do
+                    comboFrame.dots[i].activeTex:Hide()
+                    comboFrame.dots[i].allTex:Show()
+                end
+            else
+                -- Normal combo point display
+                for i = 1, 5 do
+                    comboFrame.dots[i].allTex:Hide()
+                    if i <= comboPoints then
+                        comboFrame.dots[i].activeTex:Show()
+                    else
+                        comboFrame.dots[i].activeTex:Hide()
+                    end
+                end
+            end
+        end
 	end
 
 	comboFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
@@ -689,13 +729,11 @@ function DeckSuite_CreateComboPointDisplay()
 end
 
 function DeckSuite_RepositionRaidAndPartyFrames()
-	-- Reposition CompactRaidFrameManager
 	if CompactRaidFrameManager then
 		CompactRaidFrameManager:ClearAllPoints()
 		CompactRaidFrameManager:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, -240)
 	end
 
-	-- Reposition PartyMemberFrames (up to 5 party members)
 	for i = 1, 5 do
 		local partyFrame = _G["PartyMemberFrame" .. i]
 		if partyFrame then
@@ -714,8 +752,7 @@ function DeckSuite_InitializeUnitFrames()
 	DeckSuite_CreateTargetFrame()
 	DeckSuite_CreateComboPointDisplay()
 
-	-- Reposition raid and party frames after a short delay to ensure they're loaded
-	C_Timer.After(0.5, function()
+	C_Timer.After(1, function()
 		DeckSuite_RepositionRaidAndPartyFrames()
 	end)
 end
