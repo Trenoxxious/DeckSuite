@@ -32,10 +32,13 @@ local DeckSuiteCustomChat = {
     messages = {},
     currentChannel = "SAY",
     currentChannelCommand = "/s ",
+
+    -- Tab system
     tabs = {},
     activeTabIndex = 1,
     tabsInitialized = false,
 }
+
 
 function DeckSuite_CreateDefaultTab()
     return {
@@ -48,6 +51,7 @@ function DeckSuite_CreateDefaultTab()
             CHAT_MSG_YELL = true,
             CHAT_MSG_EMOTE = true,
             CHAT_MSG_TEXT_EMOTE = true,
+            CHAT_MSG_MONSTER_EMOTE = true,
             CHAT_MSG_PARTY = true,
             CHAT_MSG_PARTY_LEADER = true,
             CHAT_MSG_RAID = true,
@@ -61,7 +65,7 @@ function DeckSuite_CreateDefaultTab()
             CHAT_MSG_ACHIEVEMENT = true,
             CHAT_MSG_LOOT = true,
         },
-        channels = {},
+        channels = {},  -- Empty means all channels
         messages = {},
         lastDisplayedCount = 0,
     }
@@ -91,8 +95,15 @@ function DeckSuite_BuildMessageTypeSet(chatFrameIndex)
 
     if chatFrame.messageTypeList then
         for _, msgType in pairs(chatFrame.messageTypeList) do
-            local fullType = "CHAT_MSG_" .. msgType
-            typeSet[fullType] = true
+            local group = ChatTypeGroup[msgType]
+            if group then
+                for _, event in ipairs(group) do
+                    typeSet[event] = true
+                end
+            else
+                local fullType = "CHAT_MSG_" .. msgType
+                typeSet[fullType] = true
+            end
         end
     end
 
@@ -244,7 +255,7 @@ end
 function DeckSuite_CreateTabPanel(mainFrame)
     local tabPanel = CreateFrame("Frame", "DeckSuiteChatTabPanel", mainFrame, "BackdropTemplate")
     tabPanel:SetSize(30, 165)
-    tabPanel:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 5, 3)
+    tabPanel:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 3, 3)
     tabPanel:SetBackdropColor(0, 0, 0, 0.5)
     tabPanel:SetFrameStrata("LOW")
 
@@ -559,9 +570,9 @@ function DeckSuite_GetTabDebugData()
     return debugText
 end
 
-
 function DeckSuite_GetTabsForMessage(chatType, channelNum, channelName)
     local matchingTabs = {}
+
     local fullMessageType = "CHAT_MSG_" .. chatType
 
     for i, tab in ipairs(DeckSuiteCustomChat.tabs) do
@@ -795,7 +806,7 @@ function DeckSuite_CreateCustomChatFrame()
         editBox:SetParent(mainFrame)
         editBox:ClearAllPoints()
         editBox:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, -26)
-        editBox:SetSize(400, 25)
+        editBox:SetSize(430, 25)
         editBox:EnableMouse(true)
     end
 

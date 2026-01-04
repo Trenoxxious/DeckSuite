@@ -46,7 +46,8 @@
         "UIErrorsFrame",
         "FCF_SetWindowName",
         "FCF_Close",
-        "RAID_CLASS_COLORS"
+        "RAID_CLASS_COLORS",
+        "ChatTypeGroup"
     ],
     "Lua.type.weakUnionCheck": true
 }
