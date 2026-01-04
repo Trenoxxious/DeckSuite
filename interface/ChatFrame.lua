@@ -340,10 +340,32 @@ function DeckSuite_CreateTabPanel(mainFrame)
 end
 
 function DeckSuite_RefreshTabs()
+    local preservedMessages = {}
+    local activeChatFrameIndex = nil
+
+    if DeckSuiteCustomChat.tabs then
+        local activeTab = DeckSuiteCustomChat.tabs[DeckSuiteCustomChat.activeTabIndex]
+        if activeTab then
+            activeChatFrameIndex = activeTab.chatFrameIndex
+        end
+
+        for _, tab in ipairs(DeckSuiteCustomChat.tabs) do
+            if tab.chatFrameIndex and tab.messages then
+                preservedMessages[tab.chatFrameIndex] = tab.messages
+            end
+        end
+    end
+
     DeckSuiteCustomChat.tabsInitialized = false
     DeckSuiteCustomChat.tabs = {}
 
     DeckSuite_InitializeTabs()
+
+    for _, tab in ipairs(DeckSuiteCustomChat.tabs) do
+        if tab.chatFrameIndex and preservedMessages[tab.chatFrameIndex] then
+            tab.messages = preservedMessages[tab.chatFrameIndex]
+        end
+    end
 
     if DeckSuiteMainChatFrame and DeckSuiteMainChatFrame.tabPanel then
         DeckSuiteMainChatFrame.tabPanel:Hide()
@@ -353,7 +375,17 @@ function DeckSuite_RefreshTabs()
         DeckSuiteMainChatFrame.tabPanel = tabPanel
 
         DeckSuiteCustomChat.activeTabIndex = 1
+        if activeChatFrameIndex then
+            for i, tab in ipairs(DeckSuiteCustomChat.tabs) do
+                if tab.chatFrameIndex == activeChatFrameIndex then
+                    DeckSuiteCustomChat.activeTabIndex = i
+                    break
+                end
+            end
+        end
+
         DeckSuite_UpdateTabVisuals()
+        DeckSuite_RefreshTabDisplay()
     end
 end
 
