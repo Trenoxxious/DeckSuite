@@ -615,16 +615,15 @@ function DeckSuite_CreateTargetFrame()
 	end
 
 	frame:RegisterEvent("PLAYER_TARGET_CHANGED")
-	frame:RegisterEvent("UNIT_HEALTH")
-	frame:RegisterEvent("UNIT_DAMAGE")
-	frame:RegisterEvent("UNIT_MAXHEALTH")
-	frame:RegisterEvent("UNIT_POWER_UPDATE")
-	frame:RegisterEvent("UNIT_MAXPOWER")
-	frame:RegisterEvent("UNIT_DISPLAYPOWER")
-	frame:RegisterEvent("UNIT_AURA")
+	frame:RegisterUnitEvent("UNIT_HEALTH", "target")
+	frame:RegisterUnitEvent("UNIT_MAXHEALTH", "target")
+	frame:RegisterUnitEvent("UNIT_POWER_UPDATE", "target")
+	frame:RegisterUnitEvent("UNIT_MAXPOWER", "target")
+	frame:RegisterUnitEvent("UNIT_DISPLAYPOWER", "target")
+	frame:RegisterUnitEvent("UNIT_AURA", "target")
 
 	frame:SetScript("OnEvent", function(self, event, unit)
-		if event == "PLAYER_TARGET_CHANGED" or event == "UNIT_AURA" or (unit and unit == "target") then
+		if event == "PLAYER_TARGET_CHANGED" or (unit and unit == "target") then
 			UpdateTargetFrame()
 		end
 	end)
