@@ -38,7 +38,8 @@
         "ChatFrame1EditBox",
         "SetItemRef",
         "ComboFrame",
-        "CompactRaidFrameManager"
+        "CompactRaidFrameManager",
+        "BuffFrame"
     ],
     "Lua.type.weakUnionCheck": true
 }

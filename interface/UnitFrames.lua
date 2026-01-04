@@ -730,8 +730,13 @@ end
 
 function DeckSuite_RepositionRaidAndPartyFrames()
 	if CompactRaidFrameManager then
-		CompactRaidFrameManager:ClearAllPoints()
-		CompactRaidFrameManager:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, -240)
+		if IsInRaid() then
+			CompactRaidFrameManager:ClearAllPoints()
+			CompactRaidFrameManager:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, -280)
+			CompactRaidFrameManager:Show()
+		else
+			CompactRaidFrameManager:Hide()
+		end
 	end
 
 	for i = 1, 5 do
@@ -739,7 +744,7 @@ function DeckSuite_RepositionRaidAndPartyFrames()
 		if partyFrame then
 			partyFrame:ClearAllPoints()
 			if i == 1 then
-				partyFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 10, -228)
+				partyFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 10, -200)
 			else
 				partyFrame:SetPoint("TOPLEFT", _G["PartyMemberFrame" .. (i - 1)], "BOTTOMLEFT", 0, -10)
 			end
@@ -753,6 +758,23 @@ function DeckSuite_InitializeUnitFrames()
 	DeckSuite_CreateComboPointDisplay()
 
 	C_Timer.After(1, function()
+		DeckSuite_RepositionRaidAndPartyFrames()
+	end)
+
+	C_Timer.After(0.5, function()
+		if BuffFrame then
+			BuffFrame:Show()
+			BuffFrame_Update()
+		end
+	end)
+
+	local groupUpdateFrame = CreateFrame("Frame")
+	groupUpdateFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
+	groupUpdateFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	groupUpdateFrame:RegisterEvent("DISPLAY_SIZE_CHANGED")
+	groupUpdateFrame:RegisterEvent("UI_SCALE_CHANGED")
+	groupUpdateFrame:RegisterEvent("COMPACT_UNIT_FRAME_PROFILES_LOADED")
+	groupUpdateFrame:SetScript("OnEvent", function()
 		DeckSuite_RepositionRaidAndPartyFrames()
 	end)
 end
