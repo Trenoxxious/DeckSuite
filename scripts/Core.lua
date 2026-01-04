@@ -12,6 +12,72 @@ local function InitializeUI()
 	DeckSuite_InitializeUnitFrames()
 end
 
+-- Debug command to dump tab information
+SLASH_DECKSUITEDEBUG1 = "/dsdebug"
+SlashCmdList["DECKSUITEDEBUG"] = function()
+	if not DeckSuiteMainChatFrame or not DeckSuiteMainChatFrame.messageFrame then
+		UIErrorsFrame:AddMessage("DeckSuite: Chat frame not initialized!", 1, 0, 0, 1, 5)
+		return
+	end
+
+	if not DeckSuite_GetTabDebugData then
+		UIErrorsFrame:AddMessage("DeckSuite: Debug function not available!", 1, 0, 0, 1, 5)
+		return
+	end
+
+	-- Get debug text from ChatFrame.lua
+	local debugText = DeckSuite_GetTabDebugData()
+
+	-- Create or show debug frame
+	if not DeckSuiteDebugFrame then
+		local frame = CreateFrame("Frame", "DeckSuiteDebugFrame", UIParent, "BackdropTemplate")
+		frame:SetSize(500, 400)
+		frame:SetPoint("CENTER")
+		frame:SetBackdrop({
+			bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+			edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+			tile = true, tileSize = 16, edgeSize = 16,
+			insets = {left = 4, right = 4, top = 4, bottom = 4}
+		})
+		frame:SetBackdropColor(0, 0, 0, 0.9)
+		frame:SetMovable(true)
+		frame:EnableMouse(true)
+		frame:RegisterForDrag("LeftButton")
+		frame:SetScript("OnDragStart", frame.StartMoving)
+		frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+
+		local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+		title:SetPoint("TOP", 0, -10)
+		title:SetText("DeckSuite Debug (Ctrl+C to copy)")
+
+		local scroll = CreateFrame("ScrollFrame", "DeckSuiteDebugScroll", frame, "UIPanelScrollFrameTemplate")
+		scroll:SetPoint("TOPLEFT", 10, -35)
+		scroll:SetPoint("BOTTOMRIGHT", -30, 40)
+
+		local editBox = CreateFrame("EditBox", nil, scroll)
+		editBox:SetMultiLine(true)
+		editBox:SetFontObject(GameFontHighlight)
+		editBox:SetWidth(460)
+		editBox:SetAutoFocus(false)
+		scroll:SetScrollChild(editBox)
+		frame.editBox = editBox
+
+		local closeBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+		closeBtn:SetSize(100, 25)
+		closeBtn:SetPoint("BOTTOM", 0, 10)
+		closeBtn:SetText("Close")
+		closeBtn:SetScript("OnClick", function() frame:Hide() end)
+
+		DeckSuiteDebugFrame = frame
+	end
+
+	DeckSuiteDebugFrame.editBox:SetText(debugText)
+	DeckSuiteDebugFrame.editBox:HighlightText()
+	DeckSuiteDebugFrame:Show()
+
+	UIErrorsFrame:AddMessage("DeckSuite: Debug window opened - Ctrl+A then Ctrl+C to copy", 0, 1, 0, 1, 3)
+end
+
 eventFrame:SetScript("OnEvent", function(self, event, ...)
 	if event == "ADDON_LOADED" then
 		local addonName = ...

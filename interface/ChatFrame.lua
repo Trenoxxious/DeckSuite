@@ -31,14 +31,575 @@ local DeckSuiteCustomChat = {
     maxMessages = 500,
     messages = {},
     currentChannel = "SAY",
-    currentChannelCommand = "/s "
+    currentChannelCommand = "/s ",
+    tabs = {},
+    activeTabIndex = 1,
+    tabsInitialized = false,
 }
+
+function DeckSuite_CreateDefaultTab()
+    return {
+        index = 1,
+        chatFrameIndex = 1,
+        name = "All",
+        shown = true,
+        messageTypes = {
+            CHAT_MSG_SAY = true,
+            CHAT_MSG_YELL = true,
+            CHAT_MSG_EMOTE = true,
+            CHAT_MSG_TEXT_EMOTE = true,
+            CHAT_MSG_PARTY = true,
+            CHAT_MSG_PARTY_LEADER = true,
+            CHAT_MSG_RAID = true,
+            CHAT_MSG_RAID_LEADER = true,
+            CHAT_MSG_RAID_WARNING = true,
+            CHAT_MSG_GUILD = true,
+            CHAT_MSG_OFFICER = true,
+            CHAT_MSG_WHISPER = true,
+            CHAT_MSG_WHISPER_INFORM = true,
+            CHAT_MSG_SYSTEM = true,
+            CHAT_MSG_ACHIEVEMENT = true,
+            CHAT_MSG_LOOT = true,
+        },
+        channels = {},
+        messages = {},
+        lastDisplayedCount = 0,
+    }
+end
+
+function DeckSuite_BuildChannelSet(chatFrameIndex)
+    local channels = {}
+    local channelList = {GetChatWindowChannels(chatFrameIndex)}
+
+    for i = 1, #channelList, 2 do
+        local channelNum = channelList[i]
+        if channelNum then
+            channels[channelNum] = true
+        end
+    end
+
+    return channels
+end
+
+function DeckSuite_BuildMessageTypeSet(chatFrameIndex)
+    local chatFrame = _G["ChatFrame" .. chatFrameIndex]
+    if not chatFrame then
+        return {}
+    end
+
+    local typeSet = {}
+
+    if chatFrame.messageTypeList then
+        for _, msgType in pairs(chatFrame.messageTypeList) do
+            local fullType = "CHAT_MSG_" .. msgType
+            typeSet[fullType] = true
+        end
+    end
+
+    return typeSet
+end
+
+function DeckSuite_ReadChatWindowConfig(chatFrameIndex)
+    local name, _, _, _, _, _, shown = GetChatWindowInfo(chatFrameIndex)
+
+    if not name or name == "" then
+        return nil
+    end
+
+    if name == "Combat Log" or name == "Voice" then
+        return nil
+    end
+
+    local messageTypes = DeckSuite_BuildMessageTypeSet(chatFrameIndex)
+    local channels = DeckSuite_BuildChannelSet(chatFrameIndex)
+
+    local hasConfig = next(messageTypes) ~= nil or next(channels) ~= nil
+    if not shown and not hasConfig then
+        return nil
+    end
+
+    local tab = {
+        index = #DeckSuiteCustomChat.tabs + 1,
+        chatFrameIndex = chatFrameIndex,
+        name = name,
+        shown = shown,
+        messageTypes = messageTypes,
+        channels = channels,
+        messages = {},
+        lastDisplayedCount = 0,
+    }
+
+    return tab
+end
+
+function DeckSuite_InitializeTabs()
+    if DeckSuiteCustomChat.tabsInitialized then
+        return
+    end
+
+    DeckSuiteCustomChat.tabs = {}
+
+    for i = 1, NUM_CHAT_WINDOWS do
+        local name, _, _, _, _, _, shown = GetChatWindowInfo(i)
+
+        local tab = DeckSuite_ReadChatWindowConfig(i)
+        if tab then
+            table.insert(DeckSuiteCustomChat.tabs, tab)
+        end
+    end
+
+    if #DeckSuiteCustomChat.tabs == 0 then
+        local defaultTab = DeckSuite_CreateDefaultTab()
+        table.insert(DeckSuiteCustomChat.tabs, defaultTab)
+    end
+
+    if #DeckSuiteCustomChat.messages > 0 then
+        for _, msg in ipairs(DeckSuiteCustomChat.messages) do
+            table.insert(DeckSuiteCustomChat.tabs[1].messages, msg)
+        end
+        DeckSuiteCustomChat.messages = {}
+    end
+
+    DeckSuiteCustomChat.activeTabIndex = 1
+    DeckSuiteCustomChat.tabsInitialized = true
+end
+
+function DeckSuite_UpdateTabVisuals()
+    if not DeckSuiteMainChatFrame or not DeckSuiteMainChatFrame.tabPanel then
+        return
+    end
+
+    local tabPanel = DeckSuiteMainChatFrame.tabPanel
+    if not tabPanel.tabButtons then
+        return
+    end
+
+    for i, button in ipairs(tabPanel.tabButtons) do
+        if i == DeckSuiteCustomChat.activeTabIndex then
+            button:SetBackdropColor(0.2, 0.3, 0.4, 1.0)
+            button:SetBackdropBorderColor(0.6, 0.7, 0.8, 1.0)
+            if button.label then
+                button.label:SetTextColor(1, 1, 1, 1)
+            end
+        else
+            button:SetBackdropColor(0.05, 0.08, 0.1, 0.8)
+            button:SetBackdropBorderColor(0.3, 0.3, 0.4, 1.0)
+            if button.label then
+                button.label:SetTextColor(0.7, 0.7, 0.7, 1)
+            end
+        end
+    end
+end
+
+function DeckSuite_CreateTabButton(tabPanel, tab, tabIndex)
+    local button = CreateFrame("Frame", "DeckSuiteTabButton" .. tabIndex, tabPanel, "BackdropTemplate")
+    button:SetSize(28, 28)
+
+    local yOffset = -8 - ((tabIndex - 1) * 30)
+    button:SetPoint("TOP", tabPanel, "TOP", 0, yOffset)
+
+    button:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 16,
+        edgeSize = 12,
+        insets = {left = 2, right = 2, top = 2, bottom = 2}
+    })
+
+    button:SetBackdropColor(0.05, 0.08, 0.1, 0.8)
+    button:SetBackdropBorderColor(0.3, 0.3, 0.4, 1.0)
+    button:EnableMouse(true)
+
+    local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    label:SetPoint("CENTER", button, "CENTER", 0, 0)
+    label:SetText(tostring(tabIndex))
+    label:SetTextColor(0.7, 0.7, 0.7, 1)
+    button.label = label
+
+    button:SetScript("OnEnter", function(self)
+        if tabIndex ~= DeckSuiteCustomChat.activeTabIndex then
+            self:SetBackdropColor(0.1, 0.15, 0.2, 0.9)
+            self:SetBackdropBorderColor(0.4, 0.5, 0.6, 1.0)
+        end
+
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(tab.name, 1, 1, 1)
+        GameTooltip:Show()
+    end)
+
+    button:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+        DeckSuite_UpdateTabVisuals()
+    end)
+
+    button:SetScript("OnMouseDown", function()
+        PlaySound(808)
+        DeckSuite_SwitchToTab(tabIndex)
+    end)
+
+    return button
+end
+
+function DeckSuite_CreateTabPanel(mainFrame)
+    local tabPanel = CreateFrame("Frame", "DeckSuiteChatTabPanel", mainFrame, "BackdropTemplate")
+    tabPanel:SetSize(30, 165)
+    tabPanel:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 5, 3)
+    tabPanel:SetBackdropColor(0, 0, 0, 0.5)
+    tabPanel:SetFrameStrata("LOW")
+
+    tabPanel.tabButtons = {}
+
+    for i, tab in ipairs(DeckSuiteCustomChat.tabs) do
+        local button = DeckSuite_CreateTabButton(tabPanel, tab, i)
+        table.insert(tabPanel.tabButtons, button)
+    end
+
+    local newTabBtn = CreateFrame("Button", "DeckSuiteChatNewTabBtn", tabPanel, "BackdropTemplate")
+    newTabBtn:SetSize(28, 28)
+    newTabBtn:SetPoint("BOTTOM", tabPanel, "BOTTOM", 0, 32)
+    newTabBtn:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 16,
+        edgeSize = 12,
+        insets = {left = 2, right = 2, top = 2, bottom = 2}
+    })
+    newTabBtn:SetBackdropColor(0.1, 0.3, 0.1, 0.9)
+    newTabBtn:SetBackdropBorderColor(0.3, 0.7, 0.3, 1.0)
+
+    local newTabIcon = newTabBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    newTabIcon:SetPoint("CENTER")
+    newTabIcon:SetText("+")
+    newTabIcon:SetTextColor(0.6, 1, 0.6, 1)
+
+    newTabBtn:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(0.2, 0.4, 0.2, 1.0)
+        newTabIcon:SetTextColor(0.8, 1, 0.8, 1)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("New Chat Tab", 1, 1, 1)
+        GameTooltip:AddLine("Creates a new chat window", 0.7, 0.7, 0.7)
+        GameTooltip:Show()
+    end)
+
+    newTabBtn:SetScript("OnLeave", function(self)
+        self:SetBackdropColor(0.1, 0.3, 0.1, 0.9)
+        newTabIcon:SetTextColor(0.6, 1, 0.6, 1)
+        GameTooltip:Hide()
+    end)
+
+    newTabBtn:SetScript("OnClick", function()
+        PlaySound(808)
+        DeckSuite_CreateNewChatTab()
+    end)
+
+    local settingsBtn = CreateFrame("Button", "DeckSuiteChatSettingsBtn", tabPanel, "BackdropTemplate")
+    settingsBtn:SetSize(28, 28)
+    settingsBtn:SetPoint("BOTTOM", tabPanel, "BOTTOM", 0, 2)
+    settingsBtn:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 16,
+        edgeSize = 12,
+        insets = {left = 2, right = 2, top = 2, bottom = 2}
+    })
+    settingsBtn:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
+    settingsBtn:SetBackdropBorderColor(0.5, 0.5, 0.5, 1.0)
+
+    local settingsIcon = settingsBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    settingsIcon:SetPoint("CENTER")
+    settingsIcon:SetText("⚙")
+    settingsIcon:SetTextColor(0.8, 0.8, 0.8, 1)
+
+    settingsBtn:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(0.2, 0.2, 0.2, 1.0)
+        settingsIcon:SetTextColor(1, 1, 1, 1)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Chat Settings", 1, 1, 1)
+        GameTooltip:AddLine("Opens Blizzard chat config", 0.7, 0.7, 0.7)
+        GameTooltip:AddLine("Tabs will refresh when closed", 0.7, 0.7, 0.7)
+        GameTooltip:Show()
+    end)
+
+    settingsBtn:SetScript("OnLeave", function(self)
+        self:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
+        settingsIcon:SetTextColor(0.8, 0.8, 0.8, 1)
+        GameTooltip:Hide()
+    end)
+
+    settingsBtn:SetScript("OnClick", function()
+        PlaySound(808)
+        DeckSuite_OpenChatSettings()
+    end)
+
+    DeckSuite_UpdateTabVisuals()
+
+    return tabPanel
+end
+
+function DeckSuite_RefreshTabs()
+    DeckSuiteCustomChat.tabsInitialized = false
+    DeckSuiteCustomChat.tabs = {}
+
+    DeckSuite_InitializeTabs()
+
+    if DeckSuiteMainChatFrame and DeckSuiteMainChatFrame.tabPanel then
+        DeckSuiteMainChatFrame.tabPanel:Hide()
+        DeckSuiteMainChatFrame.tabPanel = nil
+
+        local tabPanel = DeckSuite_CreateTabPanel(DeckSuiteMainChatFrame)
+        DeckSuiteMainChatFrame.tabPanel = tabPanel
+
+        DeckSuiteCustomChat.activeTabIndex = 1
+        DeckSuite_UpdateTabVisuals()
+    end
+end
+
+StaticPopupDialogs["DECKSUITE_NEW_TAB"] = {
+    text = "Enter name for new chat tab:",
+    button1 = "Create",
+    button2 = "Cancel",
+    hasEditBox = true,
+    maxLetters = 32,
+    OnAccept = function(self)
+        local editBox = self.editBox or self.EditBox
+        local text = editBox and editBox:GetText()
+        if text and text ~= "" then
+            DeckSuite_DoCreateChatTab(text)
+        end
+    end,
+    EditBoxOnEnterPressed = function(self)
+        local text = self:GetText()
+        if text and text ~= "" then
+            DeckSuite_DoCreateChatTab(text)
+            self:GetParent():Hide()
+        end
+    end,
+    OnShow = function(self)
+        local editBox = self.editBox or self.EditBox
+        if editBox then editBox:SetFocus() end
+    end,
+    OnHide = function(self)
+        local editBox = self.editBox or self.EditBox
+        if editBox then editBox:SetText("") end
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+function DeckSuite_DoCreateChatTab(name)
+    if FCF_OpenNewWindow then
+        local newChatFrame = FCF_OpenNewWindow(name)
+
+        if newChatFrame then
+            newChatFrame:Show()
+            FCF_SetLocked(newChatFrame, 1)
+
+            FCF_SetWindowName(newChatFrame, name)
+
+            C_Timer.After(0.3, function()
+                DeckSuite_RefreshTabs()
+            end)
+        end
+    end
+end
+
+function DeckSuite_CreateNewChatTab()
+    StaticPopup_Show("DECKSUITE_NEW_TAB")
+end
+
+function DeckSuite_OpenChatSettings()
+    if ChatConfigFrame then
+        ShowUIPanel(ChatConfigFrame)
+
+        if not ChatConfigFrame.deckSuiteHooked then
+            ChatConfigFrame:HookScript("OnHide", function()
+                C_Timer.After(0.1, function()
+                    DeckSuite_RefreshTabs()
+                end)
+            end)
+            ChatConfigFrame.deckSuiteHooked = true
+        end
+    else
+        ChatFrame_OpenChat("/chatconfig")
+    end
+end
+
+function DeckSuite_RefreshTabDisplay()
+    if not DeckSuiteMainChatFrame or not DeckSuiteMainChatFrame.messageFrame then
+        return
+    end
+
+    local activeTab = DeckSuiteCustomChat.tabs[DeckSuiteCustomChat.activeTabIndex]
+    if not activeTab then
+        return
+    end
+
+    local messageFrame = DeckSuiteMainChatFrame.messageFrame
+
+    messageFrame:Clear()
+
+    for _, msg in ipairs(activeTab.messages) do
+        messageFrame:AddMessage(msg.text, msg.r, msg.g, msg.b)
+    end
+
+    activeTab.lastDisplayedCount = #activeTab.messages
+
+    messageFrame:ScrollToBottom()
+end
+
+function DeckSuite_SwitchToTab(tabIndex)
+    if tabIndex < 1 or tabIndex > #DeckSuiteCustomChat.tabs then
+        return
+    end
+
+    if DeckSuiteCustomChat.activeTabIndex == tabIndex then
+        return
+    end
+
+    DeckSuiteCustomChat.activeTabIndex = tabIndex
+
+    DeckSuite_RefreshTabDisplay()
+
+    DeckSuite_UpdateTabVisuals()
+end
+
+function DeckSuite_GetTabDebugData()
+    local debugText = "=== DeckSuite Tab Debug ===\n"
+    debugText = debugText .. "Total tabs: " .. #DeckSuiteCustomChat.tabs .. "\n"
+    debugText = debugText .. "Active tab: " .. DeckSuiteCustomChat.activeTabIndex .. "\n\n"
+
+    for i, tab in ipairs(DeckSuiteCustomChat.tabs) do
+        debugText = debugText .. "--- Tab " .. i .. " ---\n"
+        debugText = debugText .. "  Name: " .. tab.name .. "\n"
+        debugText = debugText .. "  ChatFrame: " .. tab.chatFrameIndex .. "\n"
+
+        local chatFrame = _G["ChatFrame" .. tab.chatFrameIndex]
+        if chatFrame then
+            debugText = debugText .. "  ChatFrame exists: true\n"
+            debugText = debugText .. "  messageTypeList exists: " .. tostring(chatFrame.messageTypeList ~= nil) .. "\n"
+
+            if chatFrame.messageTypeList then
+                local count = 0
+                local sampleKeys = ""
+                local samplesCollected = 0
+                for k, v in pairs(chatFrame.messageTypeList) do
+                    count = count + 1
+                    if samplesCollected < 5 then
+                        sampleKeys = sampleKeys .. tostring(k) .. "=" .. tostring(v) .. ", "
+                        samplesCollected = samplesCollected + 1
+                    end
+                end
+                debugText = debugText .. "  messageTypeList count: " .. count .. "\n"
+                if sampleKeys ~= "" then
+                    debugText = debugText .. "  Sample keys: " .. sampleKeys .. "\n"
+                end
+            end
+        else
+            debugText = debugText .. "  ChatFrame exists: false\n"
+        end
+
+        local msgTypeCount = 0
+        local msgTypeList = ""
+        for msgType, _ in pairs(tab.messageTypes) do
+            msgTypeCount = msgTypeCount + 1
+            msgTypeList = msgTypeList .. msgType .. ", "
+        end
+        debugText = debugText .. "  Tab message types: " .. msgTypeCount .. "\n"
+        if msgTypeCount > 0 and msgTypeCount < 5 then
+            debugText = debugText .. "    Types: " .. msgTypeList .. "\n"
+        end
+
+        local channelCount = 0
+        local channelList = ""
+        for chNum, _ in pairs(tab.channels) do
+            channelCount = channelCount + 1
+            channelList = channelList .. chNum .. ", "
+        end
+        debugText = debugText .. "  Channels: " .. channelCount .. " (" .. channelList .. ")\n"
+        debugText = debugText .. "  Messages stored: " .. #tab.messages .. "\n\n"
+    end
+
+    return debugText
+end
+
+
+function DeckSuite_GetTabsForMessage(chatType, channelNum, channelName)
+    local matchingTabs = {}
+    local fullMessageType = "CHAT_MSG_" .. chatType
+
+    for i, tab in ipairs(DeckSuiteCustomChat.tabs) do
+        local shouldAdd = false
+
+        if chatType == "CHANNEL" then
+            if channelName and tab.channels and tab.channels[channelName] then
+                shouldAdd = true
+            elseif channelName and tab.channels then
+                local baseName = channelName:match("^(.-)%s%-%s")
+                if baseName and tab.channels[baseName] then
+                    shouldAdd = true
+                end
+            end
+
+            if not shouldAdd and tab.messageTypes and tab.messageTypes["CHAT_MSG_CHANNEL"] then
+                if tab.channels and next(tab.channels) == nil then
+                    shouldAdd = true
+                end
+            end
+        else
+            if tab.messageTypes and tab.messageTypes[fullMessageType] then
+                shouldAdd = true
+            end
+        end
+
+        if shouldAdd then
+            table.insert(matchingTabs, i)
+        end
+    end
+
+    return matchingTabs
+end
+
+function DeckSuite_AddChatMessageToTabs(message, r, g, b, chatType, channelNum, channelName)
+    local matchingTabs = DeckSuite_GetTabsForMessage(chatType, channelNum, channelName)
+
+    local activeTabMatches = false
+    for _, tabIndex in ipairs(matchingTabs) do
+        local tab = DeckSuiteCustomChat.tabs[tabIndex]
+        if tab then
+            local msg = {
+                text = message,
+                r = r or 1,
+                g = g or 1,
+                b = b or 1
+            }
+
+            table.insert(tab.messages, msg)
+
+            while #tab.messages > DeckSuiteCustomChat.maxMessages do
+                table.remove(tab.messages, 1)
+            end
+
+            if tabIndex == DeckSuiteCustomChat.activeTabIndex then
+                activeTabMatches = true
+            end
+        end
+    end
+
+    if activeTabMatches then
+        DeckSuite_UpdateChatDisplay()
+    end
+end
 
 function DeckSuite_CreateCustomChatFrame()
     if DeckSuiteMainChatFrame then return end
 
     local mainFrame = CreateFrame("Frame", "DeckSuiteMainChatFrame", UIParent, "BackdropTemplate")
-    mainFrame:SetSize(400, 165)
+    mainFrame:SetSize(430, 165)
     mainFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
     mainFrame:SetBackdrop({
         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -169,8 +730,12 @@ function DeckSuite_CreateCustomChatFrame()
 
     mainFrame.buttonPanel = buttonPanel
 
+    DeckSuite_InitializeTabs()
+    local tabPanel = DeckSuite_CreateTabPanel(mainFrame)
+    mainFrame.tabPanel = tabPanel
+
     local messageFrame = CreateFrame("ScrollingMessageFrame", "DeckSuiteChatMessageFrame", mainFrame)
-    messageFrame:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 8, -8)
+    messageFrame:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 38, -8)
     messageFrame:SetPoint("BOTTOMRIGHT", mainFrame, "BOTTOMRIGHT", -8, 8)
     messageFrame:SetFontObject(GameFontNormal)
     messageFrame:SetJustifyH("LEFT")
@@ -208,38 +773,27 @@ function DeckSuite_CreateCustomChatFrame()
 
     DeckSuite_UpdateChatDisplay()
     DeckSuite_RegisterChatEvents()
-end
 
-function DeckSuite_AddChatMessage(message, r, g, b)
-    table.insert(DeckSuiteCustomChat.messages, {
-        text = message,
-        r = r or 1,
-        g = g or 1,
-        b = b or 1
-    })
-
-    while #DeckSuiteCustomChat.messages > DeckSuiteCustomChat.maxMessages do
-        table.remove(DeckSuiteCustomChat.messages, 1)
-    end
-
-    DeckSuite_UpdateChatDisplay()
+    C_Timer.After(1, function()
+        DeckSuite_RefreshTabs()
+    end)
 end
 
 function DeckSuite_UpdateChatDisplay()
     if not DeckSuiteMainChatFrame then return end
+    if not DeckSuiteCustomChat.tabsInitialized then return end
+
+    local activeTab = DeckSuiteCustomChat.tabs[DeckSuiteCustomChat.activeTabIndex]
+    if not activeTab then return end
 
     local messageFrame = DeckSuiteMainChatFrame.messageFrame
 
-    if not DeckSuiteCustomChat.lastDisplayedCount then
-        DeckSuiteCustomChat.lastDisplayedCount = 0
-    end
-
-    for i = DeckSuiteCustomChat.lastDisplayedCount + 1, #DeckSuiteCustomChat.messages do
-        local msg = DeckSuiteCustomChat.messages[i]
+    for i = activeTab.lastDisplayedCount + 1, #activeTab.messages do
+        local msg = activeTab.messages[i]
         messageFrame:AddMessage(msg.text, msg.r, msg.g, msg.b)
     end
 
-    DeckSuiteCustomChat.lastDisplayedCount = #DeckSuiteCustomChat.messages
+    activeTab.lastDisplayedCount = #activeTab.messages
 end
 
 function DeckSuite_RegisterChatEvents()
@@ -281,6 +835,7 @@ function DeckSuite_HandleChatEvent(event, ...)
     local message = args[1]
     local sender = args[2]
     local chatType = event:gsub("CHAT_MSG_", "")
+    local originalChatType = chatType
 
     local channelNum, channelName
     if chatType == "CHANNEL" then
@@ -345,7 +900,7 @@ function DeckSuite_HandleChatEvent(event, ...)
         formattedMessage = string.format("[%s]: %s", sender or "System", message)
     end
 
-    DeckSuite_AddChatMessage(formattedMessage, r, g, b)
+    DeckSuite_AddChatMessageToTabs(formattedMessage, r, g, b, originalChatType, channelNum, channelName)
 end
 
 function DeckSuite_HideDefaultChat()

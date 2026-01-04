@@ -39,7 +39,13 @@
         "SetItemRef",
         "ComboFrame",
         "CompactRaidFrameManager",
-        "BuffFrame"
+        "BuffFrame",
+        "ChatConfigFrame",
+        "FCF_OpenNewWindow",
+        "FCF_SetLocked",
+        "UIErrorsFrame",
+        "FCF_SetWindowName",
+        "FCF_Close"
     ],
     "Lua.type.weakUnionCheck": true
 }
