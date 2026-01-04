@@ -859,9 +859,20 @@ function DeckSuite_HandleChatEvent(event, ...)
     local color = CHAT_COLORS[chatType] or {1, 1, 1}
     local r, g, b = unpack(color)
 
+    local senderGUID = args[12]
     local playerLink = sender
     if sender and sender ~= "" then
-        playerLink = "|Hplayer:" .. sender .. "|h" .. sender .. "|h"
+        local nameText = sender
+        if senderGUID and senderGUID ~= "" then
+            local _, englishClass = GetPlayerInfoByGUID(senderGUID)
+            if englishClass then
+                local classColor = RAID_CLASS_COLORS[englishClass]
+                if classColor and classColor.colorStr then
+                    nameText = "|c" .. classColor.colorStr .. sender .. "|r"
+                end
+            end
+        end
+        playerLink = "|Hplayer:" .. sender .. "|h" .. nameText .. "|h"
     else
         playerLink = "Unknown"
     end

@@ -45,7 +45,8 @@
         "FCF_SetLocked",
         "UIErrorsFrame",
         "FCF_SetWindowName",
-        "FCF_Close"
+        "FCF_Close",
+        "RAID_CLASS_COLORS"
     ],
     "Lua.type.weakUnionCheck": true
 }
