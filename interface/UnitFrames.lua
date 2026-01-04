@@ -687,7 +687,7 @@ function DeckSuite_CreateComboPointDisplay()
 	end
 
 	local function UpdateComboPoints()
-        if (UnitClass("player") == "Rogue") then
+        if (UnitClass("player") == "Rogue" or UnitClass("player") == "Druid") then
             local comboPoints = GetComboPoints("player", "target")
 
             comboFrame:Show()
