@@ -330,7 +330,6 @@ function DeckSuite_CreateTabPanel(mainFrame)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("Chat Settings", 1, 1, 1)
         GameTooltip:AddLine("Opens Blizzard chat config", 0.7, 0.7, 0.7)
-        GameTooltip:AddLine("Tabs will refresh when closed", 0.7, 0.7, 0.7)
         GameTooltip:Show()
     end)
 
