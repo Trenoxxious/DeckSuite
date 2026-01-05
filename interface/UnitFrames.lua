@@ -197,6 +197,20 @@ function DeckSuite_CreatePlayerFrame()
 	portraitFrame:SetAttribute("*type1", "target")
 	portraitFrame:SetAttribute("*type2", "togglemenu")
 
+	local combatGlow = CreateFrame("Frame", nil, portraitFrame, "BackdropTemplate")
+	combatGlow:SetPoint("TOPLEFT", -5, 5)
+	combatGlow:SetPoint("BOTTOMRIGHT", 5, -5)
+	combatGlow:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+		tile = true, tileSize = 16, edgeSize = 12,
+        insets = {left = 2, right = 2, top = 2, bottom = 2}
+	})
+    combatGlow:SetBackdropColor(1, 0, 0, 0.5)
+	combatGlow:SetBackdropBorderColor(1, 0, 0, 1)
+	combatGlow:Hide()
+	portraitFrame.combatGlow = combatGlow
+
 	local portrait = CreateFrame("PlayerModel", "DeckSuitePortraitFrame", portraitFrame)
 	portrait:SetSize(PORTRAIT_SIZE, PORTRAIT_SIZE)
 	portrait:SetPoint("LEFT", portraitFrame, "LEFT", 5, 0)
@@ -297,16 +311,31 @@ function DeckSuite_CreatePlayerFrame()
     portraitFrame:RegisterEvent("PLAYER_LEVEL_CHANGED")
 	portraitFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 	portraitFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+	portraitFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+	portraitFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 	portraitFrame:SetScript("OnEvent", function(self, event, unit)
 		if event == "PLAYER_ENTERING_WORLD" then
 			UpdatePlayerFrame()
+			if UnitAffectingCombat("player") then
+				self:SetBackdropBorderColor(1, 0, 0, 1)
+				self.combatGlow:Show()
+			else
+				self:SetBackdropBorderColor(1, 1, 1, 0.8)
+				self.combatGlow:Hide()
+			end
 			C_Timer.After(4.0, function()
 				if portrait then
 					portrait:SetUnit("player")
 					portrait:SetCamera(0)
 				end
 			end)
+		elseif event == "PLAYER_REGEN_DISABLED" then
+			self:SetBackdropBorderColor(1, 0, 0, 1)
+			self.combatGlow:Show()
+		elseif event == "PLAYER_REGEN_ENABLED" then
+			self:SetBackdropBorderColor(1, 1, 1, 0.8)
+			self.combatGlow:Hide()
 		elseif unit and unit == "player" then
 			UpdatePlayerFrame()
 		end
@@ -353,6 +382,7 @@ function DeckSuite_CreateTargetFrame()
 	frame:SetAttribute("*type1", "target")
 	frame:SetAttribute("*type2", "togglemenu")
 	frame.mainFrame = frame
+	RegisterUnitWatch(frame)
 
 	local portrait = CreateFrame("PlayerModel", nil, frame)
 	portrait:SetSize(PORTRAIT_SIZE, PORTRAIT_SIZE)
@@ -516,7 +546,6 @@ function DeckSuite_CreateTargetFrame()
 
 	local function UpdateTargetFrame()
 		if not UnitExists("target") then
-			frame:Hide()
 			return
 		end
 
@@ -530,8 +559,6 @@ function DeckSuite_CreateTargetFrame()
 				frame.questMarker:Hide()
 			end
 		end
-
-		frame:Show()
 
 		local health = UnitHealth("target")
 		local healthMax = UnitHealthMax("target")
@@ -628,22 +655,10 @@ function DeckSuite_CreateTargetFrame()
 		end
 	end)
 
-	local updateThrottle = 0
-	frame:SetScript("OnUpdate", function(self, elapsed)
-		updateThrottle = updateThrottle + elapsed
-		if updateThrottle >= 0.1 then
-			updateThrottle = 0
-			if not UnitExists("target") and self:IsShown() then
-				self:Hide()
-			end
-		end
-	end)
-
-	frame:Hide()
+	frame:SetScript("OnShow", UpdateTargetFrame)
 
 	_G.DeckSuiteTargetFrame = frame
 end
-
 
 function DeckSuite_CreateComboPointDisplay()
 	if DeckSuiteComboPointFrame then return end

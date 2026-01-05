@@ -47,7 +47,8 @@
         "FCF_SetWindowName",
         "FCF_Close",
         "RAID_CLASS_COLORS",
-        "ChatTypeGroup"
+        "ChatTypeGroup",
+        "RegisterUnitWatch"
     ],
     "Lua.type.weakUnionCheck": true
 }
