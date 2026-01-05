@@ -1,1 +1,3 @@
-- Event listeners have been adjusted to hopefully better handle unit frames for targets when being attacked.
+- Fixed an issue where player models in the 3D portrait would refresh too often.
+- Adjustments to target frames depending on classification, health levels, trivialness, etc.
+- Made in-combat player frame less jarring in color.

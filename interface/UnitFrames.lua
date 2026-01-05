@@ -206,8 +206,8 @@ function DeckSuite_CreatePlayerFrame()
 		tile = true, tileSize = 16, edgeSize = 12,
         insets = {left = 2, right = 2, top = 2, bottom = 2}
 	})
-    combatGlow:SetBackdropColor(1, 0, 0, 0.5)
-	combatGlow:SetBackdropBorderColor(1, 0, 0, 1)
+    combatGlow:SetBackdropColor(1, 0.8, 0, 0.4)
+	combatGlow:SetBackdropBorderColor(1, 0.8, 0, 0.75)
 	combatGlow:Hide()
 	portraitFrame.combatGlow = combatGlow
 
@@ -219,7 +219,7 @@ function DeckSuite_CreatePlayerFrame()
 	portrait:SetCamera(0)
 	portraitFrame.portrait = portrait
 
-	C_Timer.After(4.0, function()
+	C_Timer.After(10.0, function()
 		if portrait then
 			portrait:SetUnit("player")
 			portrait:SetCamera(0)
@@ -318,20 +318,20 @@ function DeckSuite_CreatePlayerFrame()
 		if event == "PLAYER_ENTERING_WORLD" then
 			UpdatePlayerFrame()
 			if UnitAffectingCombat("player") then
-				self:SetBackdropBorderColor(1, 0, 0, 1)
+				self:SetBackdropBorderColor(1, 0.6, 0, 1)
 				self.combatGlow:Show()
 			else
 				self:SetBackdropBorderColor(1, 1, 1, 0.8)
 				self.combatGlow:Hide()
 			end
-			C_Timer.After(4.0, function()
+			C_Timer.After(10.0, function()
 				if portrait then
 					portrait:SetUnit("player")
 					portrait:SetCamera(0)
 				end
 			end)
 		elseif event == "PLAYER_REGEN_DISABLED" then
-			self:SetBackdropBorderColor(1, 0, 0, 1)
+			self:SetBackdropBorderColor(1, 0.6, 0, 1)
 			self.combatGlow:Show()
 		elseif event == "PLAYER_REGEN_ENABLED" then
 			self:SetBackdropBorderColor(1, 1, 1, 0.8)
@@ -408,7 +408,7 @@ function DeckSuite_CreateTargetFrame()
 	local healthBg = healthBar:CreateTexture(nil, "BACKGROUND")
 	healthBg:SetAllPoints(healthBar)
 	healthBg:SetTexture("Interface/TargetingFrame/UI-StatusBar")
-	healthBg:SetVertexColor(0, 0.3, 0, 0.5)
+	healthBg:SetVertexColor(1, 1, 1, 0.15)
 
 	local healthText = healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	healthText:SetPoint("CENTER", healthBar, "CENTER", 0, 0)
@@ -436,8 +436,8 @@ function DeckSuite_CreateTargetFrame()
 
 	local addonPath = "Interface\\AddOns\\DeckSuite\\"
 	local whisperButton = CreateFrame("Frame", "DeckSuiteTargetWhisperButton", frame)
-	whisperButton:SetSize(33, 33)
-	whisperButton:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, 35)
+	whisperButton:SetSize(38, 38)
+	whisperButton:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 37)
 	whisperButton:EnableMouse(true)
 	whisperButton:SetFrameStrata("MEDIUM")
 
@@ -469,8 +469,8 @@ function DeckSuite_CreateTargetFrame()
 	frame.whisperButton = whisperButton
 
 	local partyInviteButton = CreateFrame("Frame", "DeckSuiteTargetPartyInviteButton", frame)
-	partyInviteButton:SetSize(33, 33)
-	partyInviteButton:SetPoint("LEFT", whisperButton, "RIGHT", 2, 0)
+	partyInviteButton:SetSize(38, 38)
+	partyInviteButton:SetPoint("LEFT", whisperButton, "RIGHT", -2, 0)
 	partyInviteButton:EnableMouse(true)
 	partyInviteButton:SetFrameStrata("MEDIUM")
 
@@ -502,8 +502,8 @@ function DeckSuite_CreateTargetFrame()
 	frame.partyInviteButton = partyInviteButton
 
 	local thankYouButton = CreateFrame("Frame", "DeckSuiteTargetThankYouButton", frame)
-	thankYouButton:SetSize(33, 33)
-	thankYouButton:SetPoint("LEFT", partyInviteButton, "RIGHT", 2, 0)
+	thankYouButton:SetSize(38, 38)
+	thankYouButton:SetPoint("LEFT", partyInviteButton, "RIGHT", -2, 0)
 	thankYouButton:EnableMouse(true)
 	thankYouButton:SetFrameStrata("MEDIUM")
 
@@ -567,14 +567,21 @@ function DeckSuite_CreateTargetFrame()
 		local powerType = UnitPowerType("target")
 		local name = UnitName("target")
         local level = tostring(UnitLevel("target"))
+        local specialty = UnitClassification("target")
+        local trivial = UnitIsTrivial("target")
+        local specialtyText = ""
 
-        if level == "-1" then
-            level = "??"
+        if specialty == "rare" then
+            specialtyText = " Rare"
+        elseif specialty == "rareelite" then
+            specialtyText = " Rare Elite"
+        elseif specialty == "elite" then
+            specialtyText = " Elite"
         end
 
-		frame.portrait:SetUnit("target")
-		frame.portrait:SetPortraitZoom(1)
-		frame.portrait:SetCamera(0)
+        if level == "-1" or specialty == "worldboss" then
+            level = "??"
+        end
 
 		local r, g, b = 0.9, 0.3, 0.3
 		if UnitIsPlayer("target") then
@@ -582,7 +589,7 @@ function DeckSuite_CreateTargetFrame()
 				r, g, b = 0.3, 0.6, 0.9
 			elseif UnitIsEnemy("player", "target") then
 				r, g, b = 0.9, 0.3, 0.3
-			end
+            end
 		elseif UnitReaction("target", "player") then
 			local reaction = UnitReaction("target", "player")
 			if reaction >= 5 then
@@ -594,20 +601,34 @@ function DeckSuite_CreateTargetFrame()
 			end
 		end
 
+        if not UnitIsPlayer("target") and (trivial or health == 0) then
+            r, g, b = 1, 1, 1
+        end
+
 		if frame.SetBackdropBorderColor then
 			frame:SetBackdropBorderColor(r, g, b, 1)
 		end
 
-		frame.nameText:SetText((name .. " (Lvl " .. level .. ")") or "Target")
+        if trivial and not UnitIsPlayer("target") then
+            frame:SetAlpha(0.8)
+        else
+            frame:SetAlpha(1)
+        end
+
+		frame.nameText:SetText((name .. " (Lvl " .. level .. specialtyText .. ")") or "Target")
 
 		frame.healthBar:SetMinMaxValues(0, healthMax)
 		frame.healthBar:SetValue(health)
-		frame.healthText:SetText(FormatValue(health, healthMax) .. " / " .. FormatValue(healthMax, healthMax))
+        if health > 0 then
+		    frame.healthText:SetText(FormatValue(health, healthMax) .. " / " .. FormatValue(healthMax, healthMax))
+        else
+            frame.healthText:SetText("Dead")
+        end
 
 		local healthPercent = health / healthMax
-		if healthPercent > 0.5 then
+        if healthPercent > 0.6 then
 			frame.healthBar:SetStatusBarColor(0, 1, 0, 1)
-		elseif healthPercent > 0.25 then
+		elseif healthPercent > 0.2 then
 			frame.healthBar:SetStatusBarColor(1, 1, 0, 1)
 		else
 			frame.healthBar:SetStatusBarColor(1, 0, 0, 1)
@@ -650,12 +671,24 @@ function DeckSuite_CreateTargetFrame()
 	frame:RegisterUnitEvent("UNIT_AURA", "target")
 
 	frame:SetScript("OnEvent", function(self, event, unit)
-		if event == "PLAYER_TARGET_CHANGED" or (unit and unit == "target") then
+		if event == "PLAYER_TARGET_CHANGED" then
 			UpdateTargetFrame()
-		end
+            frame.portrait:SetUnit("target")
+            frame.portrait:SetPortraitZoom(1)
+            frame.portrait:SetCamera(0)
+        end
+
+        if (unit and unit == "target") then
+            UpdateTargetFrame()
+        end
 	end)
 
-	frame:SetScript("OnShow", UpdateTargetFrame)
+	frame:SetScript("OnShow", function()
+        UpdateTargetFrame()
+        frame.portrait:SetUnit("target")
+		frame.portrait:SetPortraitZoom(1)
+		frame.portrait:SetCamera(0)
+    end)
 
 	_G.DeckSuiteTargetFrame = frame
 end

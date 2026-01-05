@@ -321,7 +321,7 @@ function DeckSuite_CreateTabPanel(mainFrame)
 
     local settingsIcon = settingsBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     settingsIcon:SetPoint("CENTER")
-    settingsIcon:SetText("⚙")
+    settingsIcon:SetText("S") -- ⚙
     settingsIcon:SetTextColor(0.8, 0.8, 0.8, 1)
 
     settingsBtn:SetScript("OnEnter", function(self)
