@@ -4,6 +4,7 @@ local defaults = {
 	profile = {
 		unitFrames = {
 			horizontalOffset = 0,
+			ultraHardcoreMode = false,
 		},
 	}
 }
@@ -27,6 +28,20 @@ local options = {
 					name = "Adjust the position of player and target frames.",
 					order = 2,
 				},
+                ultraHardcoreMode = {
+					type = "toggle",
+					name = "Ultra Hardcore Mode",
+					desc = "Hide health and power bars, showing only the player name and 3D portrait.",
+					order = 3,
+					width = "full",
+					get = function(info)
+						return DeckSuite.db.profile.unitFrames.ultraHardcoreMode
+					end,
+					set = function(info, value)
+						DeckSuite.db.profile.unitFrames.ultraHardcoreMode = value
+						DeckSuite_UpdateUnitFrameBars()
+					end,
+				},
 				horizontalOffset = {
 					type = "range",
 					name = "Horizontal Offset",
@@ -34,7 +49,7 @@ local options = {
 					min = -375,
 					max = 100,
 					step = 5,
-					order = 3,
+					order = 4,
 					width = "full",
 					get = function(info)
 						return DeckSuite.db.profile.unitFrames.horizontalOffset

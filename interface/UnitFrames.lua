@@ -174,7 +174,7 @@ end
 
 function DeckSuite_UpdateUnitFramePositions()
 	if not DeckSuite or not DeckSuite.db then
-		return  -- Settings not initialized yet
+		return
 	end
 
 	local offset = DeckSuite.db.profile.unitFrames.horizontalOffset or 0
@@ -187,6 +187,48 @@ function DeckSuite_UpdateUnitFramePositions()
 	if targetFrameRef and targetFrameRef:IsShown() then
 		targetFrameRef:ClearAllPoints()
 		targetFrameRef:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100)
+	end
+end
+
+function DeckSuite_UpdateUnitFrameBars()
+	if not DeckSuite or not DeckSuite.db then
+		return
+	end
+
+	local ultraHardcore = DeckSuite.db.profile.unitFrames.ultraHardcoreMode or false
+
+	if playerFrameRef then
+		if playerFrameRef.healthBar then
+			if ultraHardcore then
+				playerFrameRef.healthBar:Hide()
+			else
+				playerFrameRef.healthBar:Show()
+			end
+		end
+		if playerFrameRef.powerBar then
+			if ultraHardcore then
+				playerFrameRef.powerBar:Hide()
+			else
+				playerFrameRef.powerBar:Show()
+			end
+		end
+	end
+
+	if targetFrameRef then
+		if targetFrameRef.healthBar then
+			if ultraHardcore then
+				targetFrameRef.healthBar:Hide()
+			else
+				targetFrameRef.healthBar:Show()
+			end
+		end
+		if targetFrameRef.powerBar then
+			if ultraHardcore then
+				targetFrameRef.powerBar:Hide()
+			else
+				targetFrameRef.powerBar:Show()
+			end
+		end
 	end
 end
 
@@ -307,27 +349,35 @@ function DeckSuite_CreatePlayerFrame()
 		local name = UnitName("player")
         local level = UnitLevel("player")
 
-		portraitFrame.nameText:SetText((name .. " (Lvl " .. level .. ")") or "Player")
+		local ultraHardcore = DeckSuite and DeckSuite.db and DeckSuite.db.profile.unitFrames.ultraHardcoreMode or false
 
-		portraitFrame.healthBar:SetMinMaxValues(0, healthMax)
-		portraitFrame.healthBar:SetValue(health)
-		portraitFrame.healthText:SetText(FormatValue(health, healthMax) .. " / " .. FormatValue(healthMax, healthMax))
-
-		local healthPercent = health / healthMax
-		if healthPercent > 0.5 then
-			portraitFrame.healthBar:SetStatusBarColor(0, 1, 0, 1)
-		elseif healthPercent > 0.25 then
-			portraitFrame.healthBar:SetStatusBarColor(1, 1, 0, 1)
+		if ultraHardcore then
+			portraitFrame.nameText:SetText(name or "Player")
 		else
-			portraitFrame.healthBar:SetStatusBarColor(1, 0, 0, 1)
+			portraitFrame.nameText:SetText((name .. " (Lvl " .. level .. ")") or "Player")
 		end
 
-		portraitFrame.powerBar:SetMinMaxValues(0, powerMax)
-		portraitFrame.powerBar:SetValue(power)
-		portraitFrame.powerText:SetText(FormatValue(power, powerMax) .. " / " .. FormatValue(powerMax, powerMax))
+		if not ultraHardcore then
+			portraitFrame.healthBar:SetMinMaxValues(0, healthMax)
+			portraitFrame.healthBar:SetValue(health)
+			portraitFrame.healthText:SetText(FormatValue(health, healthMax) .. " / " .. FormatValue(healthMax, healthMax))
 
-		local r, g, b = unpack(GetPowerColor(powerType))
-		portraitFrame.powerBar:SetStatusBarColor(r, g, b, 1)
+			local healthPercent = health / healthMax
+			if healthPercent > 0.5 then
+				portraitFrame.healthBar:SetStatusBarColor(0, 1, 0, 1)
+			elseif healthPercent > 0.25 then
+				portraitFrame.healthBar:SetStatusBarColor(1, 1, 0, 1)
+			else
+				portraitFrame.healthBar:SetStatusBarColor(1, 0, 0, 1)
+			end
+
+			portraitFrame.powerBar:SetMinMaxValues(0, powerMax)
+			portraitFrame.powerBar:SetValue(power)
+			portraitFrame.powerText:SetText(FormatValue(power, powerMax) .. " / " .. FormatValue(powerMax, powerMax))
+
+			local r, g, b = unpack(GetPowerColor(powerType))
+			portraitFrame.powerBar:SetStatusBarColor(r, g, b, 1)
+		end
 	end
 
 	portraitFrame:RegisterEvent("UNIT_HEALTH")
@@ -370,6 +420,7 @@ function DeckSuite_CreatePlayerFrame()
 	end)
 
 	UpdatePlayerFrame()
+	DeckSuite_UpdateUnitFrameBars()
 
 	_G.DeckSuitePlayerFrame = portraitFrame
 end
@@ -650,35 +701,43 @@ function DeckSuite_CreateTargetFrame()
             frame:SetAlpha(1)
         end
 
-		frame.nameText:SetText((name .. " (Lvl " .. level .. specialtyText .. ")") or "Target")
+		local ultraHardcore = DeckSuite and DeckSuite.db and DeckSuite.db.profile.unitFrames.ultraHardcoreMode or false
 
-		frame.healthBar:SetMinMaxValues(0, healthMax)
-		frame.healthBar:SetValue(health)
-        if health > 0 then
-		    frame.healthText:SetText(FormatValue(health, healthMax) .. " / " .. FormatValue(healthMax, healthMax))
-        else
-            frame.healthText:SetText("Dead")
-        end
-
-		local healthPercent = health / healthMax
-        if healthPercent > 0.6 then
-			frame.healthBar:SetStatusBarColor(0, 1, 0, 1)
-		elseif healthPercent > 0.2 then
-			frame.healthBar:SetStatusBarColor(1, 1, 0, 1)
+		if ultraHardcore then
+			frame.nameText:SetText(name or "Target")
 		else
-			frame.healthBar:SetStatusBarColor(1, 0, 0, 1)
+			frame.nameText:SetText((name .. " (Lvl " .. level .. specialtyText .. ")") or "Target")
 		end
 
-		if powerMax > 0 then
-			frame.powerBar:Show()
-			frame.powerBar:SetMinMaxValues(0, powerMax)
-			frame.powerBar:SetValue(power)
-			frame.powerText:SetText(FormatValue(power, powerMax) .. " / " .. FormatValue(powerMax, powerMax))
+		if not ultraHardcore then
+			frame.healthBar:SetMinMaxValues(0, healthMax)
+			frame.healthBar:SetValue(health)
+			if health > 0 then
+				frame.healthText:SetText(FormatValue(health, healthMax) .. " / " .. FormatValue(healthMax, healthMax))
+			else
+				frame.healthText:SetText("Dead")
+			end
 
-			local pr, pg, pb = unpack(GetPowerColor(powerType))
-			frame.powerBar:SetStatusBarColor(pr, pg, pb, 1)
-		else
-			frame.powerBar:Hide()
+			local healthPercent = health / healthMax
+			if healthPercent > 0.6 then
+				frame.healthBar:SetStatusBarColor(0, 1, 0, 1)
+			elseif healthPercent > 0.2 then
+				frame.healthBar:SetStatusBarColor(1, 1, 0, 1)
+			else
+				frame.healthBar:SetStatusBarColor(1, 0, 0, 1)
+			end
+
+			if powerMax > 0 then
+				frame.powerBar:Show()
+				frame.powerBar:SetMinMaxValues(0, powerMax)
+				frame.powerBar:SetValue(power)
+				frame.powerText:SetText(FormatValue(power, powerMax) .. " / " .. FormatValue(powerMax, powerMax))
+
+				local pr, pg, pb = unpack(GetPowerColor(powerType))
+				frame.powerBar:SetStatusBarColor(pr, pg, pb, 1)
+			else
+				frame.powerBar:Hide()
+			end
 		end
 
 		UpdateAuras(frame, "target")
@@ -724,6 +783,8 @@ function DeckSuite_CreateTargetFrame()
 		frame.portrait:SetPortraitZoom(1)
 		frame.portrait:SetCamera(0)
     end)
+
+	DeckSuite_UpdateUnitFrameBars()
 
 	_G.DeckSuiteTargetFrame = frame
 end

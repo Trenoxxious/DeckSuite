@@ -1,4 +1,4 @@
 - Fixed an issue where player models in the 3D portrait would refresh too often.
 - Adjustments to target frames depending on classification, health levels, trivialness, etc.
 - Made in-combat player frame less jarring in color.
-- Added a settings frame using Ace3 Config (ty Ace3) for adjusting various settings.
+- Added a settings frame using Ace3 Config (ty Ace3) for adjusting various settings. Currently we have a setting to adjust unit frame center offset and to enable Ultra Hardcore unit frames.
