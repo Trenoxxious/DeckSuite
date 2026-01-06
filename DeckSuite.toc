@@ -9,6 +9,14 @@
 ## SavedVariables: DeckSuite, DeckSuiteWhispers
 ## SavedVariablesPerCharacter: DeckSuiteChar
 
+# Libraries
+lib\Ace3\LibStub\LibStub.lua
+lib\Ace3\CallbackHandler-1.0\CallbackHandler-1.0.xml
+lib\Ace3\AceDB-3.0\AceDB-3.0.xml
+lib\Ace3\AceConsole-3.0\AceConsole-3.0.xml
+lib\Ace3\AceGUI-3.0\AceGUI-3.0.xml
+lib\Ace3\AceConfig-3.0\AceConfig-3.0.xml
+
 # Functions
 functions\ChatFunctions.lua
 functions\WhisperTracking.lua
@@ -18,6 +26,9 @@ interface\ChatFrame.lua
 interface\ChatChannelUI.lua
 interface\ReplyUI.lua
 interface\UnitFrames.lua
+
+# Settings
+scripts\Settings.lua
 
 # Core (last to load)
 scripts\Core.lua

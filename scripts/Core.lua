@@ -1,3 +1,6 @@
+-- Initialize addon table
+DeckSuite = DeckSuite or {}
+
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
@@ -85,8 +88,18 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 			return
 		end
 
-		if not NoxxDeckSuiteWhispers then
-			NoxxDeckSuiteWhispers = {}
+		-- Initialize settings system FIRST
+		DeckSuite_InitializeSettings()
+
+		-- Migrate old whisper data if exists (fixes SavedVariables bug)
+		if NoxxDeckSuiteWhispers then
+			DeckSuiteWhispers = NoxxDeckSuiteWhispers
+			NoxxDeckSuiteWhispers = nil
+		end
+
+		-- Initialize whisper table if needed
+		if not DeckSuiteWhispers then
+			DeckSuiteWhispers = {}
 		end
 
 		InitializeUI()

@@ -7,6 +7,9 @@ local BUFF_SIZE = 24
 local BUFFS_PER_ROW = 6
 local BUFF_SPACING = 2
 
+local playerFrameRef = nil
+local targetFrameRef = nil
+
 local function FormatValue(current, max)
 	if current >= 1000000 then
 		return string.format("%.1fM", current / 1000000)
@@ -169,6 +172,24 @@ local function UpdateAuras(frame, unit)
 	end
 end
 
+function DeckSuite_UpdateUnitFramePositions()
+	if not DeckSuite or not DeckSuite.db then
+		return  -- Settings not initialized yet
+	end
+
+	local offset = DeckSuite.db.profile.unitFrames.horizontalOffset or 0
+
+	if playerFrameRef and playerFrameRef:IsShown() then
+		playerFrameRef:ClearAllPoints()
+		playerFrameRef:SetPoint("CENTER", UIParent, "CENTER", -260 + offset, -100)
+	end
+
+	if targetFrameRef and targetFrameRef:IsShown() then
+		targetFrameRef:ClearAllPoints()
+		targetFrameRef:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100)
+	end
+end
+
 function DeckSuite_CreatePlayerFrame()
 	if DeckSuitePlayerFrame then return end
 
@@ -182,7 +203,14 @@ function DeckSuite_CreatePlayerFrame()
 
 	local portraitFrame = CreateFrame("Button", "DeckSuitePlayerFrame", UIParent, "SecureUnitButtonTemplate,BackdropTemplate")
 	portraitFrame:SetSize(FRAME_WIDTH, FRAME_HEIGHT)
-	portraitFrame:SetPoint("CENTER", UIParent, "CENTER", -260, -100)
+
+	playerFrameRef = portraitFrame
+
+	local offset = 0
+	if DeckSuite and DeckSuite.db then
+		offset = DeckSuite.db.profile.unitFrames.horizontalOffset or 0
+	end
+	portraitFrame:SetPoint("CENTER", UIParent, "CENTER", -260 + offset, -100)
     portraitFrame:SetFrameStrata("LOW")
 	portraitFrame:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -367,7 +395,14 @@ function DeckSuite_CreateTargetFrame()
 
 	local frame = CreateFrame("Button", "DeckSuiteTargetFrame", UIParent, "SecureUnitButtonTemplate,BackdropTemplate")
 	frame:SetSize(FRAME_WIDTH, FRAME_HEIGHT)
-	frame:SetPoint("CENTER", UIParent, "CENTER", 260, -100)
+
+	targetFrameRef = frame
+
+	local offset = 0
+	if DeckSuite and DeckSuite.db then
+		offset = DeckSuite.db.profile.unitFrames.horizontalOffset or 0
+	end
+	frame:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100)
 	frame:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",

@@ -48,7 +48,19 @@
         "FCF_Close",
         "RAID_CLASS_COLORS",
         "ChatTypeGroup",
-        "RegisterUnitWatch"
+        "RegisterUnitWatch",
+        "UIDROPDOWNMENU_MAXLEVELS",
+        "ExecuteFrameScript",
+        "DropDownMenuButtonMixin",
+        "ColorPickerFrame",
+        "VIDEO_QUALITY_LABEL6",
+        "Clamp",
+        "SOUNDKIT",
+        "TooltipBackdropTemplateMixin",
+        "SharedTooltip_SetBackdropStyle",
+        "GameTooltip_Hide",
+        "GameTooltip_AddErrorLine",
+        "AddonCompartmentFrame"
     ],
     "Lua.type.weakUnionCheck": true
 }

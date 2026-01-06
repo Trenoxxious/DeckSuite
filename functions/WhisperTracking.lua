@@ -6,17 +6,17 @@ function DeckSuite_AddRecentWhisper(name, message)
 	local short = name:gsub("%-.+$", "")
 	message = message or ""
 
-	for i = 1, #NoxxDeckSuiteWhispers do
-		if NoxxDeckSuiteWhispers[i].name == short then
-			table.remove(NoxxDeckSuiteWhispers, i)
+	for i = 1, #DeckSuiteWhispers do
+		if DeckSuiteWhispers[i].name == short then
+			table.remove(DeckSuiteWhispers, i)
 			break
 		end
 	end
 
-	table.insert(NoxxDeckSuiteWhispers, 1, {name = short, message = message})
+	table.insert(DeckSuiteWhispers, 1, {name = short, message = message})
 
-	while #NoxxDeckSuiteWhispers > MAX_RECENTS do
-		table.remove(NoxxDeckSuiteWhispers)
+	while #DeckSuiteWhispers > MAX_RECENTS do
+		table.remove(DeckSuiteWhispers)
 	end
 
 	if DeckSuiteReplyFrame and DeckSuiteReplyFrame:IsShown() and DeckSuiteReplyFrame.Update then
