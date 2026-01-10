@@ -4,6 +4,7 @@ local defaults = {
 	profile = {
 		unitFrames = {
 			horizontalOffset = 0,
+			verticalOffset = 0,
 			ultraHardcoreMode = false,
 		},
 	}
@@ -56,6 +57,23 @@ local options = {
 					end,
 					set = function(info, value)
 						DeckSuite.db.profile.unitFrames.horizontalOffset = value
+						DeckSuite_UpdateUnitFramePositions()
+					end,
+				},
+				verticalOffset = {
+					type = "range",
+					name = "Vertical Offset",
+					desc = "Adjust distance from center. Positive values bring frames closer together, negative values move them farther apart.",
+					min = -20,
+					max = 150,
+					step = 5,
+					order = 5,
+					width = "full",
+					get = function(info)
+						return DeckSuite.db.profile.unitFrames.verticalOffset
+					end,
+					set = function(info, value)
+						DeckSuite.db.profile.unitFrames.verticalOffset = value
 						DeckSuite_UpdateUnitFramePositions()
 					end,
 				},

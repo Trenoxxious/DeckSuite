@@ -178,15 +178,16 @@ function DeckSuite_UpdateUnitFramePositions()
 	end
 
 	local offset = DeckSuite.db.profile.unitFrames.horizontalOffset or 0
+	local v_offset = DeckSuite.db.profile.unitFrames.verticalOffset or 0
 
 	if playerFrameRef and playerFrameRef:IsShown() then
 		playerFrameRef:ClearAllPoints()
-		playerFrameRef:SetPoint("CENTER", UIParent, "CENTER", -260 + offset, -100)
+		playerFrameRef:SetPoint("CENTER", UIParent, "CENTER", -260 + offset, -100 + v_offset)
 	end
 
 	if targetFrameRef and targetFrameRef:IsShown() then
 		targetFrameRef:ClearAllPoints()
-		targetFrameRef:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100)
+		targetFrameRef:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100 + v_offset)
 	end
 end
 
