@@ -5,6 +5,8 @@ local defaults = {
 		unitFrames = {
 			horizontalOffset = 0,
 			verticalOffset = 0,
+            comboPointVerticalOffset = 0,
+            comboPointFrameScale = 1.0,
 			ultraHardcoreMode = false,
 		},
 	}
@@ -63,9 +65,9 @@ local options = {
 				verticalOffset = {
 					type = "range",
 					name = "Vertical Offset",
-					desc = "Adjust distance from center. Positive values bring frames closer together, negative values move them farther apart.",
-					min = -20,
-					max = 150,
+					desc = "Adjust distance from the starting position of the frames vertically to be higher or lower.",
+					min = -40,
+					max = 250,
 					step = 5,
 					order = 5,
 					width = "full",
@@ -75,6 +77,40 @@ local options = {
 					set = function(info, value)
 						DeckSuite.db.profile.unitFrames.verticalOffset = value
 						DeckSuite_UpdateUnitFramePositions()
+					end,
+				},
+				comboPointVerticalOffset = {
+					type = "range",
+					name = "Combo Point Vertical Offset",
+					desc = "Adjust distance from the starting position of the combo point frame vertically to be higher or lower.",
+					min = -150,
+					max = 250,
+					step = 5,
+					order = 6,
+					width = "full",
+					get = function(info)
+						return DeckSuite.db.profile.unitFrames.comboPointVerticalOffset
+					end,
+					set = function(info, value)
+						DeckSuite.db.profile.unitFrames.comboPointVerticalOffset = value
+						DeckSuite_UpdateComboFramePosition()
+					end,
+				},
+				comboPointFrameScale = {
+					type = "range",
+					name = "Combo Point Frame Scale",
+					desc = "Adjust distance from the starting position of the combo point frame vertically to be higher or lower.",
+					min = 0.5,
+					max = 1.5,
+					step = 0.1,
+					order = 7,
+					width = "full",
+					get = function(info)
+						return DeckSuite.db.profile.unitFrames.comboPointFrameScale
+					end,
+					set = function(info, value)
+						DeckSuite.db.profile.unitFrames.comboPointFrameScale = value
+						DeckSuite_UpdateComboFramePosition()
 					end,
 				},
 			},

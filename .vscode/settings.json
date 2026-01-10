@@ -60,7 +60,20 @@
         "SharedTooltip_SetBackdropStyle",
         "GameTooltip_Hide",
         "GameTooltip_AddErrorLine",
-        "AddonCompartmentFrame"
+        "AddonCompartmentFrame",
+        "SELECTED_CHAT_FRAME",
+        "ACCEPT",
+        "CANCEL",
+        "Settings",
+        "hash_SlashCmdList",
+        "NORMAL_FONT_COLOR_CODE",
+        "FONT_COLOR_CODE_CLOSE",
+        "CLOSE",
+        "SetDesaturation",
+        "OKAY",
+        "NOT_BOUND",
+        "IsSecureCmd",
+        "ChatEdit_GetActiveWindow"
     ],
     "Lua.type.weakUnionCheck": true
 }

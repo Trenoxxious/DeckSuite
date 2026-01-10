@@ -9,6 +9,9 @@ local BUFF_SPACING = 2
 
 local playerFrameRef = nil
 local targetFrameRef = nil
+local comboFrameRef = nil
+local updateFrameRef = nil
+local updateTargetRef = nil
 
 local function FormatValue(current, max)
 	if current >= 1000000 then
@@ -185,9 +188,31 @@ function DeckSuite_UpdateUnitFramePositions()
 		playerFrameRef:SetPoint("CENTER", UIParent, "CENTER", -260 + offset, -100 + v_offset)
 	end
 
-	if targetFrameRef and targetFrameRef:IsShown() then
+	if targetFrameRef then
 		targetFrameRef:ClearAllPoints()
 		targetFrameRef:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100 + v_offset)
+	end
+
+    if updateFrameRef then
+		updateFrameRef()
+	end
+	if updateTargetRef then
+		updateTargetRef()
+	end
+end
+
+function DeckSuite_UpdateComboFramePosition()
+	if not DeckSuite or not DeckSuite.db then
+		return
+	end
+
+	local cp_v_offset = DeckSuite.db.profile.unitFrames.comboPointVerticalOffset or 0
+	local cp_scale = DeckSuite.db.profile.unitFrames.comboPointFrameScale or 0
+
+	if comboFrameRef and comboFrameRef:IsShown() then
+		comboFrameRef:ClearAllPoints()
+		comboFrameRef:SetPoint("CENTER", UIParent, "CENTER", 0, -150 + cp_v_offset)
+        comboFrameRef:SetScale(1.0 * cp_scale)
 	end
 end
 
@@ -231,6 +256,13 @@ function DeckSuite_UpdateUnitFrameBars()
 			end
 		end
 	end
+
+	if updateFrameRef then
+		updateFrameRef()
+	end
+	if updateTargetRef then
+		updateTargetRef()
+	end
 end
 
 function DeckSuite_CreatePlayerFrame()
@@ -250,10 +282,12 @@ function DeckSuite_CreatePlayerFrame()
 	playerFrameRef = portraitFrame
 
 	local offset = 0
+    local v_offset = 0
 	if DeckSuite and DeckSuite.db then
 		offset = DeckSuite.db.profile.unitFrames.horizontalOffset or 0
+        v_offset = DeckSuite.db.profile.unitFrames.verticalOffset or 0
 	end
-	portraitFrame:SetPoint("CENTER", UIParent, "CENTER", -260 + offset, -100)
+	portraitFrame:SetPoint("CENTER", UIParent, "CENTER", -260 + offset, -100 + v_offset)
     portraitFrame:SetFrameStrata("LOW")
 	portraitFrame:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -381,6 +415,8 @@ function DeckSuite_CreatePlayerFrame()
 		end
 	end
 
+	updateFrameRef = UpdatePlayerFrame
+
 	portraitFrame:RegisterEvent("UNIT_HEALTH")
 	portraitFrame:RegisterEvent("UNIT_MAXHEALTH")
 	portraitFrame:RegisterEvent("UNIT_POWER_UPDATE")
@@ -451,10 +487,12 @@ function DeckSuite_CreateTargetFrame()
 	targetFrameRef = frame
 
 	local offset = 0
+	local v_offset = 0
 	if DeckSuite and DeckSuite.db then
 		offset = DeckSuite.db.profile.unitFrames.horizontalOffset or 0
+		v_offset = DeckSuite.db.profile.unitFrames.verticalOffset or 0
 	end
-	frame:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100)
+	frame:SetPoint("CENTER", UIParent, "CENTER", 260 - offset, -100 + v_offset)
 	frame:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -757,6 +795,7 @@ function DeckSuite_CreateTargetFrame()
 		end
 	end
 
+	updateTargetRef = UpdateTargetFrame
 	frame:RegisterEvent("PLAYER_TARGET_CHANGED")
 	frame:RegisterUnitEvent("UNIT_HEALTH", "target")
 	frame:RegisterUnitEvent("UNIT_MAXHEALTH", "target")
@@ -793,10 +832,20 @@ end
 function DeckSuite_CreateComboPointDisplay()
 	if DeckSuiteComboPointFrame then return end
 
+    local cp_v_offset = 0
+    local cp_scale = 0
+	if DeckSuite and DeckSuite.db then
+        cp_v_offset = DeckSuite.db.profile.unitFrames.comboPointVerticalOffset or 0
+        cp_scale = DeckSuite.db.profile.unitFrames.comboPointFrameScale or 0
+	end
+
 	local comboFrame = CreateFrame("Frame", "DeckSuiteComboPointFrame", UIParent)
 	comboFrame:SetSize(150, 20)
-	comboFrame:SetPoint("CENTER", UIParent, "CENTER", 0, -150)
+    comboFrame:SetScale(1.0 * cp_scale)
+	comboFrame:SetPoint("CENTER", UIParent, "CENTER", 0, -150 + cp_v_offset)
 	comboFrame:SetFrameStrata("LOW")
+
+    comboFrameRef = comboFrame
 
 	comboFrame.dots = {}
 	local addonPath = "Interface\\AddOns\\DeckSuite\\"
