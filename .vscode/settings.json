@@ -73,7 +73,20 @@
         "OKAY",
         "NOT_BOUND",
         "IsSecureCmd",
-        "ChatEdit_GetActiveWindow"
+        "ChatEdit_GetActiveWindow",
+        "CHAT_MSG_SKILL",
+        "PARTY",
+        "PARTY_LEADER",
+        "RAID",
+        "RAID_LEADER",
+        "RAID_WARNING",
+        "GUILD",
+        "OFFICER",
+        "WHISPER",
+        "SYSTEM",
+        "ACHIEVEMENT",
+        "LOOT",
+        "COMBAT_XP_GAIN"
     ],
     "Lua.type.weakUnionCheck": true
 }

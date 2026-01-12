@@ -2,6 +2,12 @@ local CHAT_COLORS = {
     SAY = {1, 1, 1},
     YELL = {1, 0.25, 0.25},
     EMOTE = {1, 0.5, 0.25},
+    SKILL_UP = {0.2, 0.38, 0.92},
+    TRADESKILLS = {0.2, 0.38, 0.92},
+    PET_INFO = {1, 0.5, 0.25},
+    SKILL_GAINED = {1, 1, 1},
+    COMBAT_XP_GAIN = {0.2, 0.38, 0.92},
+    COMBAT_HONOR_GAIN = {0.2, 0.38, 0.92},
     TEXT_EMOTE = {1, 0.5, 0.25},
     PARTY = {0.67, 0.67, 1},
     PARTY_LEADER = {0.46, 0.78, 1},
@@ -12,6 +18,7 @@ local CHAT_COLORS = {
     OFFICER = {0.25, 0.75, 0.25},
     WHISPER = {1, 0.5, 1},
     WHISPER_INFORM = {1, 0.5, 1},
+    MONSTER_EMOTE = {1, 0.5, 0.25},
     CHANNEL1 = {1, 0.75, 0.75}, -- General
     CHANNEL2 = {1, 0.75, 0.75}, -- Trade
     CHANNEL3 = {1, 0.75, 0.75}, -- LocalDefense
@@ -23,6 +30,8 @@ local CHAT_COLORS = {
     CHANNEL9 = {1, 0.75, 0.75}, -- General-like
     CHANNEL10 = {1, 0.75, 0.75}, -- General-like
     SYSTEM = {1, 1, 0},
+    COMBAT_MISC_INFO = {1, 1, 0},
+    MONEY = {1, 1, 0},
     ACHIEVEMENT = {1, 1, 0},
     LOOT = {0, 0.67, 0}
 }
@@ -62,6 +71,8 @@ function DeckSuite_CreateDefaultTab()
             CHAT_MSG_WHISPER = true,
             CHAT_MSG_WHISPER_INFORM = true,
             CHAT_MSG_SYSTEM = true,
+            CHAT_MSG_COMBAT_XP_GAIN = true,
+            CHAT_MSG_SKILL = true,
             CHAT_MSG_ACHIEVEMENT = true,
             CHAT_MSG_LOOT = true,
         },
@@ -272,7 +283,7 @@ end
 function DeckSuite_CreateTabPanel(mainFrame)
     local tabPanel = CreateFrame("Frame", "DeckSuiteChatTabPanel", mainFrame, "BackdropTemplate")
     tabPanel:SetSize(30, 165)
-    tabPanel:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 3, 3)
+    tabPanel:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 4, 3)
     tabPanel:SetBackdropColor(0, 0, 0, 0.5)
     tabPanel:SetFrameStrata("LOW")
 
@@ -857,6 +868,74 @@ function DeckSuite_UpdateChatDisplay()
     activeTab.lastDisplayedCount = #activeTab.messages
 end
 
+function DeckSuite_HandleLevelUp(...)
+    local args = {...}
+    local newLevel = args[1]
+    local healthGain = args[2] or 0
+    local manaGain = args[3] or 0
+    local talentPoints = args[4] or 0
+    local strengthGain = args[5] or 0
+    local agilityGain = args[6] or 0
+    local staminaGain = args[7] or 0
+    local intellectGain = args[8] or 0
+    local spiritGain = args[9] or 0
+
+    local r, g, b = 1, 1, 0
+
+    local messages = {}
+    table.insert(messages, string.format("Congratulations, you have reached level %d!", newLevel))
+
+    if healthGain > 0 and manaGain > 0 then
+        table.insert(messages, string.format("You gain %d hit points and %d mana.", healthGain, manaGain))
+    end
+
+    if healthGain > 0 and manaGain == 0 then
+        table.insert(messages, string.format("You gain %d hit points.", healthGain))
+    end
+
+    if manaGain > 0 and healthGain == 0 then
+        table.insert(messages, string.format("You gain %d mana.", manaGain))
+    end
+
+    if strengthGain > 0 then
+        table.insert(messages, string.format("You gain %d Strength.", strengthGain))
+    end
+    if agilityGain > 0 then
+        table.insert(messages, string.format("You gain %d Agility.", agilityGain))
+    end
+    if staminaGain > 0 then
+        table.insert(messages, string.format("You gain %d Stamina.", staminaGain))
+    end
+    if intellectGain > 0 then
+        table.insert(messages, string.format("You gain %d Intellect.", intellectGain))
+    end
+    if spiritGain > 0 then
+        table.insert(messages, string.format("You gain %d Spirit.", spiritGain))
+    end
+
+    if talentPoints > 0 then
+        table.insert(messages, string.format("You have %d talent point%s available.", talentPoints, talentPoints > 1 and "s" or ""))
+    end
+
+    for _, tab in ipairs(DeckSuiteCustomChat.tabs) do
+        for _, messageText in ipairs(messages) do
+            local msg = {
+                text = messageText,
+                r = r,
+                g = g,
+                b = b
+            }
+            table.insert(tab.messages, msg)
+        end
+
+        while #tab.messages > DeckSuiteCustomChat.maxMessages do
+            table.remove(tab.messages, 1)
+        end
+    end
+
+    DeckSuite_UpdateChatDisplay()
+end
+
 function DeckSuite_RegisterChatEvents()
     local chatEventFrame = CreateFrame("Frame")
 
@@ -865,9 +944,12 @@ function DeckSuite_RegisterChatEvents()
         "CHAT_MSG_YELL",
         "CHAT_MSG_EMOTE",
         "CHAT_MSG_TEXT_EMOTE",
+        "CHAT_MSG_MONSTER_EMOTE",
+        "CHAT_MSG_PET_INFO",
         "CHAT_MSG_PARTY",
         "CHAT_MSG_PARTY_LEADER",
         "CHAT_MSG_RAID",
+        "CHAT_MSG_MONEY",
         "CHAT_MSG_RAID_LEADER",
         "CHAT_MSG_RAID_WARNING",
         "CHAT_MSG_GUILD",
@@ -876,6 +958,11 @@ function DeckSuite_RegisterChatEvents()
         "CHAT_MSG_WHISPER_INFORM",
         "CHAT_MSG_CHANNEL",
         "CHAT_MSG_SYSTEM",
+        "CHAT_MSG_COMBAT_XP_GAIN",
+        "CHAT_MSG_COMBAT_HONOR_GAIN",
+        "CHAT_MSG_COMBAT_MISC_INFO",
+        "CHAT_MSG_SKILL",
+        "CHAT_MSG_TRADESKILLS",
         "CHAT_MSG_ACHIEVEMENT",
         "CHAT_MSG_LOOT"
     }
@@ -884,8 +971,14 @@ function DeckSuite_RegisterChatEvents()
         chatEventFrame:RegisterEvent(event)
     end
 
+    chatEventFrame:RegisterEvent("PLAYER_LEVEL_UP")
+
     chatEventFrame:SetScript("OnEvent", function(self, event, ...)
-        DeckSuite_HandleChatEvent(event, ...)
+        if event == "PLAYER_LEVEL_UP" then
+            DeckSuite_HandleLevelUp(...)
+        else
+            DeckSuite_HandleChatEvent(event, ...)
+        end
     end)
 
     _G.DeckSuiteChatEventFrame = chatEventFrame
@@ -897,6 +990,14 @@ function DeckSuite_HandleChatEvent(event, ...)
     local sender = args[2]
     local chatType = event:gsub("CHAT_MSG_", "")
     local originalChatType = chatType
+
+    if chatType == "SKILL" then
+        if message:find("increased to") then
+            chatType = "SKILL_UP"
+        else
+            chatType = "SKILL_GAINED"
+        end
+    end
 
     local channelNum, channelName
     if chatType == "CHANNEL" then
@@ -946,22 +1047,26 @@ function DeckSuite_HandleChatEvent(event, ...)
         formattedMessage = string.format("[%s] yells: %s", playerLink, message)
     elseif chatType == "EMOTE" then
         formattedMessage = string.format("%s %s", playerLink, message)
-    elseif chatType == "TEXT_EMOTE" then
+    elseif chatType == "MONSTER_EMOTE" then
         formattedMessage = message
+    elseif chatType == "TEXT_EMOTE" or chatType == "SKILL_UP" or chatType == "SKILL_GAINED"
+        or chatType == "COMBAT_XP_GAIN" or chatType == "MONEY" or chatType == "TRADESKILLS"
+        or chatType == "PET_INFO" or chatType == "COMBAT_HONOR_GAIN" or chatType == "COMBAT_MISC_INFO" then
+            formattedMessage = message
     elseif chatType == "PARTY" or chatType == "PARTY_LEADER" then
-        formattedMessage = string.format("[Party][%s]: %s", playerLink, message)
+        formattedMessage = string.format("[Party] [%s]: %s", playerLink, message)
     elseif chatType == "RAID" or chatType == "RAID_LEADER" then
-        formattedMessage = string.format("[Raid][%s]: %s", playerLink, message)
+        formattedMessage = string.format("[Raid] [%s]: %s", playerLink, message)
     elseif chatType == "GUILD" then
-        formattedMessage = string.format("[Guild][%s]: %s", playerLink, message)
+        formattedMessage = string.format("[Guild] [%s]: %s", playerLink, message)
     elseif chatType == "OFFICER" then
-        formattedMessage = string.format("[Officer][%s]: %s", playerLink, message)
+        formattedMessage = string.format("[Officer] [%s]: %s", playerLink, message)
     elseif chatType == "WHISPER" then
         formattedMessage = string.format("[%s] whispers: %s", playerLink, message)
     elseif chatType == "WHISPER_INFORM" then
         formattedMessage = string.format("To [%s]: %s", playerLink, message)
     elseif chatType:match("^CHANNEL") then
-        formattedMessage = string.format("[%s. %s][%s]: %s", channelNum, channelName or "Channel", playerLink, message)
+        formattedMessage = string.format("[%s. %s] [%s]: %s", channelNum, channelName or "Channel", playerLink, message)
     elseif chatType == "SYSTEM" then
         formattedMessage = message
     elseif chatType == "ACHIEVEMENT" then
