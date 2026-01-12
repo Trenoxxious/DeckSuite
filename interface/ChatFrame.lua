@@ -179,6 +179,10 @@ function DeckSuite_InitializeTabs()
     DeckSuiteCustomChat.tabs = {}
 
     for i = 1, NUM_CHAT_WINDOWS do
+        if #DeckSuiteCustomChat.tabs >= 4 then
+            break
+        end
+
         local name, _, _, _, _, _, shown = GetChatWindowInfo(i)
 
         local tab = DeckSuite_ReadChatWindowConfig(i)
@@ -227,6 +231,10 @@ function DeckSuite_UpdateTabVisuals()
 end
 
 function DeckSuite_CreateTabButton(tabPanel, tab, tabIndex)
+    if tabIndex > 4 then
+        return nil
+    end
+
     local button = CreateFrame("Frame", "DeckSuiteTabButton" .. tabIndex, tabPanel)
     button:SetSize(32, 32)
 
@@ -321,7 +329,9 @@ function DeckSuite_CreateTabPanel(mainFrame)
 
     for i, tab in ipairs(DeckSuiteCustomChat.tabs) do
         local button = DeckSuite_CreateTabButton(tabPanel, tab, i)
-        table.insert(tabPanel.tabButtons, button)
+        if button then
+            table.insert(tabPanel.tabButtons, button)
+        end
     end
 
     local addonPath = "Interface\\AddOns\\DeckSuite\\"
