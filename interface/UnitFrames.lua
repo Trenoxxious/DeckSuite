@@ -567,11 +567,11 @@ function DeckSuite_CreateTargetFrame()
 	whisperButton:SetFrameStrata("MEDIUM")
 
 	local normalTex = whisperButton:CreateTexture(nil, "BACKGROUND")
-	normalTex:SetTexture(addonPath .. "images\\whisper_button")
+	normalTex:SetTexture(addonPath .. "images\\whisper_button_new")
 	normalTex:SetAllPoints(whisperButton)
 
 	local hoverTex = whisperButton:CreateTexture(nil, "ARTWORK")
-	hoverTex:SetTexture(addonPath .. "images\\whisper_button_hover")
+	hoverTex:SetTexture(addonPath .. "images\\whisper_button_hover_new")
 	hoverTex:SetAllPoints(whisperButton)
 	hoverTex:Hide()
 
@@ -595,16 +595,16 @@ function DeckSuite_CreateTargetFrame()
 
 	local partyInviteButton = CreateFrame("Frame", "DeckSuiteTargetPartyInviteButton", frame)
 	partyInviteButton:SetSize(38, 38)
-	partyInviteButton:SetPoint("LEFT", whisperButton, "RIGHT", -2, 0)
+	partyInviteButton:SetPoint("LEFT", whisperButton, "RIGHT", -1, 0)
 	partyInviteButton:EnableMouse(true)
 	partyInviteButton:SetFrameStrata("MEDIUM")
 
 	local partyNormalTex = partyInviteButton:CreateTexture(nil, "BACKGROUND")
-	partyNormalTex:SetTexture(addonPath .. "images\\party_invite")
+	partyNormalTex:SetTexture(addonPath .. "images\\party_invite_new")
 	partyNormalTex:SetAllPoints(partyInviteButton)
 
 	local partyHoverTex = partyInviteButton:CreateTexture(nil, "ARTWORK")
-	partyHoverTex:SetTexture(addonPath .. "images\\party_invite_hover")
+	partyHoverTex:SetTexture(addonPath .. "images\\party_invite_hover_new")
 	partyHoverTex:SetAllPoints(partyInviteButton)
 	partyHoverTex:Hide()
 
@@ -628,16 +628,16 @@ function DeckSuite_CreateTargetFrame()
 
 	local thankYouButton = CreateFrame("Frame", "DeckSuiteTargetThankYouButton", frame)
 	thankYouButton:SetSize(38, 38)
-	thankYouButton:SetPoint("LEFT", partyInviteButton, "RIGHT", -2, 0)
+	thankYouButton:SetPoint("LEFT", partyInviteButton, "RIGHT", -1, 0)
 	thankYouButton:EnableMouse(true)
 	thankYouButton:SetFrameStrata("MEDIUM")
 
 	local thankYouNormalTex = thankYouButton:CreateTexture(nil, "BACKGROUND")
-	thankYouNormalTex:SetTexture(addonPath .. "images\\thank_you")
+	thankYouNormalTex:SetTexture(addonPath .. "images\\thank_you_new")
 	thankYouNormalTex:SetAllPoints(thankYouButton)
 
 	local thankYouHoverTex = thankYouButton:CreateTexture(nil, "ARTWORK")
-	thankYouHoverTex:SetTexture(addonPath .. "images\\thank_you_hover")
+	thankYouHoverTex:SetTexture(addonPath .. "images\\thank_you_hover_new")
 	thankYouHoverTex:SetAllPoints(thankYouButton)
 	thankYouHoverTex:Hide()
 

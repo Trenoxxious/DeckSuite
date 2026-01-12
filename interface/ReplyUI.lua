@@ -169,11 +169,11 @@ function DeckSuite_CreateReplyUI()
 	newChatBtn:EnableMouse(true)
 
 	local chatNormalTex = newChatBtn:CreateTexture(nil, "BACKGROUND")
-	chatNormalTex:SetTexture(addonPath .. "images\\new_chat_button")
+	chatNormalTex:SetTexture(addonPath .. "images\\new_chat_button_new")
 	chatNormalTex:SetAllPoints(newChatBtn)
 
 	local chatHoverTex = newChatBtn:CreateTexture(nil, "ARTWORK")
-	chatHoverTex:SetTexture(addonPath .. "images\\new_chat_button_hover")
+	chatHoverTex:SetTexture(addonPath .. "images\\new_chat_button_hover_new")
 	chatHoverTex:SetAllPoints(newChatBtn)
 	chatHoverTex:Hide()
 

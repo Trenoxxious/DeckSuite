@@ -39,9 +39,9 @@ function DeckSuite_ReplaceButtonIcons()
 
 		local bottomButton = _G[frameName .. "BottomButton"]
 		if bottomButton then
-			bottomButton:SetNormalTexture(addonPath .. "images\\bottom_button")
-			bottomButton:SetPushedTexture(addonPath .. "images\\bottom_button")
-			bottomButton:SetHighlightTexture(addonPath .. "images\\bottom_button")
+			bottomButton:SetNormalTexture(addonPath .. "images\\bottom_button_new")
+			bottomButton:SetPushedTexture(addonPath .. "images\\bottom_button_hover_new")
+			bottomButton:SetHighlightTexture(addonPath .. "images\\bottom_button_hover_new")
 		end
 
 		local downButton = _G[frameName .. "DownButton"]
