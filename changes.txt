@@ -1,9 +1,1 @@
-Added setting for unit frame vertical offset.
-Added setting for combo frame vertical offset.
-Added setting for combo frame scale.
-Added setting to adjust chat text size.
-Updating settings to properly update unit frames in all scenarios, even when not showing.
-Added several chat events that were missing from showing (money gain, level gain messages, skill-ups, honor, experience, monster emote, etc.)
-Fixed issues with portait updating when enabling/disabling Ultra Hardcore mode.
-Fixed an issue with the reply interface not using the new DB variable.
-Fixed several minor inconsistencies between Blizzard chat messages and DeckSuite chat messages, including colors of text based on chat type.
+Updated the buttons to a newer, fresher style. (These are not AI generated, a lot of love went into these. Feedback, please)
