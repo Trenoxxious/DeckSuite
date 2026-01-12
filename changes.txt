@@ -1,1 +1,4 @@
-Updated the buttons to a newer, fresher style. (These are not AI generated, a lot of love went into these. Feedback, please)
+Updated tab panel buttons to the newer button style, ditching the default border, etc.
+Implemented 4-tab maximum limit. The add tab button now hides when 4 tabs exist.
+Fixed an issue with monster emotes showing %s instead of their intended string value.
+Added long-press (hold 1 second) and triple-click deletion for chat tabs with confirmation dialog.

@@ -214,67 +214,97 @@ function DeckSuite_UpdateTabVisuals()
     end
 
     for i, button in ipairs(tabPanel.tabButtons) do
-        if i == DeckSuiteCustomChat.activeTabIndex then
-            button:SetBackdropColor(0.2, 0.3, 0.4, 1.0)
-            button:SetBackdropBorderColor(0.6, 0.7, 0.8, 1.0)
-            if button.label then
-                button.label:SetTextColor(1, 1, 1, 1)
-            end
-        else
-            button:SetBackdropColor(0.05, 0.08, 0.1, 0.8)
-            button:SetBackdropBorderColor(0.3, 0.3, 0.4, 1.0)
-            if button.label then
-                button.label:SetTextColor(0.7, 0.7, 0.7, 1)
+        if button.activeTex and button.hoverTex then
+            if i == DeckSuiteCustomChat.activeTabIndex then
+                button.activeTex:Show()
+                button.hoverTex:Hide()
+            else
+                button.activeTex:Hide()
+                button.hoverTex:Hide()
             end
         end
     end
 end
 
 function DeckSuite_CreateTabButton(tabPanel, tab, tabIndex)
-    local button = CreateFrame("Frame", "DeckSuiteTabButton" .. tabIndex, tabPanel, "BackdropTemplate")
-    button:SetSize(28, 28)
+    local button = CreateFrame("Frame", "DeckSuiteTabButton" .. tabIndex, tabPanel)
+    button:SetSize(32, 32)
 
-    local yOffset = -8 - ((tabIndex - 1) * 30)
+    local yOffset = -8 - ((tabIndex - 1) * 31)
     button:SetPoint("TOP", tabPanel, "TOP", 0, yOffset)
-
-    button:SetBackdrop({
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-        tile = true,
-        tileSize = 16,
-        edgeSize = 12,
-        insets = {left = 2, right = 2, top = 2, bottom = 2}
-    })
-
-    button:SetBackdropColor(0.05, 0.08, 0.1, 0.8)
-    button:SetBackdropBorderColor(0.3, 0.3, 0.4, 1.0)
     button:EnableMouse(true)
 
-    local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    label:SetPoint("CENTER", button, "CENTER", 0, 0)
-    label:SetText(tostring(tabIndex))
-    label:SetTextColor(0.7, 0.7, 0.7, 1)
-    button.label = label
+    local addonPath = "Interface\\AddOns\\DeckSuite\\"
+
+    local normalTex = button:CreateTexture(nil, "BACKGROUND")
+    normalTex:SetTexture(addonPath .. "images\\tabs\\" .. tabIndex)
+    normalTex:SetAllPoints(button)
+    button.normalTex = normalTex
+
+    local hoverTex = button:CreateTexture(nil, "ARTWORK")
+    hoverTex:SetTexture(addonPath .. "images\\tabs\\" .. tabIndex .. "_hover")
+    hoverTex:SetAllPoints(button)
+    hoverTex:Hide()
+    button.hoverTex = hoverTex
+
+    local activeTex = button:CreateTexture(nil, "OVERLAY")
+    activeTex:SetTexture(addonPath .. "images\\tabs\\" .. tabIndex .. "_active")
+    activeTex:SetAllPoints(button)
+    activeTex:Hide()
+    button.activeTex = activeTex
+
+    local longPressTimer = nil
+    local longPressDuration = 1.0
+
+    local clickCount = 0
+    local lastClickTime = 0
+    local tripleClickWindow = 0.5
 
     button:SetScript("OnEnter", function(self)
         if tabIndex ~= DeckSuiteCustomChat.activeTabIndex then
-            self:SetBackdropColor(0.1, 0.15, 0.2, 0.9)
-            self:SetBackdropBorderColor(0.4, 0.5, 0.6, 1.0)
+            self.hoverTex:Show()
         end
-
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(tab.name, 1, 1, 1)
+        GameTooltip:AddLine("Long-press or triple-click to delete", 0.7, 0.7, 0.7)
         GameTooltip:Show()
     end)
 
-    button:SetScript("OnLeave", function()
+    button:SetScript("OnLeave", function(self)
+        self.hoverTex:Hide()
         GameTooltip:Hide()
-        DeckSuite_UpdateTabVisuals()
     end)
 
     button:SetScript("OnMouseDown", function()
-        PlaySound(808)
-        DeckSuite_SwitchToTab(tabIndex)
+        longPressTimer = C_Timer.NewTimer(longPressDuration, function()
+            DeckSuite_ConfirmDeleteTab(tab, tabIndex)
+            longPressTimer = nil
+            clickCount = 0
+        end)
+    end)
+
+    button:SetScript("OnMouseUp", function()
+        if longPressTimer then
+            longPressTimer:Cancel()
+            longPressTimer = nil
+
+            local currentTime = GetTime()
+            if currentTime - lastClickTime <= tripleClickWindow then
+                clickCount = clickCount + 1
+            else
+                clickCount = 1
+            end
+            lastClickTime = currentTime
+
+            if clickCount >= 3 then
+                PlaySound(808)
+                DeckSuite_ConfirmDeleteTab(tab, tabIndex)
+                clickCount = 0
+            else
+                PlaySound(808)
+                DeckSuite_SwitchToTab(tabIndex)
+            end
+        end
     end)
 
     return button
@@ -294,80 +324,74 @@ function DeckSuite_CreateTabPanel(mainFrame)
         table.insert(tabPanel.tabButtons, button)
     end
 
-    local newTabBtn = CreateFrame("Button", "DeckSuiteChatNewTabBtn", tabPanel, "BackdropTemplate")
-    newTabBtn:SetSize(28, 28)
-    newTabBtn:SetPoint("BOTTOM", tabPanel, "BOTTOM", 0, 32)
-    newTabBtn:SetBackdrop({
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-        tile = true,
-        tileSize = 16,
-        edgeSize = 12,
-        insets = {left = 2, right = 2, top = 2, bottom = 2}
-    })
-    newTabBtn:SetBackdropColor(0.1, 0.3, 0.1, 0.9)
-    newTabBtn:SetBackdropBorderColor(0.3, 0.7, 0.3, 1.0)
+    local addonPath = "Interface\\AddOns\\DeckSuite\\"
 
-    local newTabIcon = newTabBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    newTabIcon:SetPoint("CENTER")
-    newTabIcon:SetText("+")
-    newTabIcon:SetTextColor(0.6, 1, 0.6, 1)
+    local newTabBtn = CreateFrame("Frame", "DeckSuiteChatNewTabBtn", tabPanel)
+    newTabBtn:SetSize(32, 32)
+    newTabBtn:SetPoint("BOTTOM", tabPanel, "BOTTOM", 0, 32)
+    newTabBtn:EnableMouse(true)
+
+    local addNormalTex = newTabBtn:CreateTexture(nil, "BACKGROUND")
+    addNormalTex:SetTexture(addonPath .. "images\\tabs\\add_tab")
+    addNormalTex:SetAllPoints(newTabBtn)
+
+    local addHoverTex = newTabBtn:CreateTexture(nil, "ARTWORK")
+    addHoverTex:SetTexture(addonPath .. "images\\tabs\\add_tab_hover")
+    addHoverTex:SetAllPoints(newTabBtn)
+    addHoverTex:Hide()
 
     newTabBtn:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(0.2, 0.4, 0.2, 1.0)
-        newTabIcon:SetTextColor(0.8, 1, 0.8, 1)
+        addHoverTex:Show()
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("New Chat Tab", 1, 1, 1)
         GameTooltip:AddLine("Creates a new chat window", 0.7, 0.7, 0.7)
         GameTooltip:Show()
     end)
 
-    newTabBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(0.1, 0.3, 0.1, 0.9)
-        newTabIcon:SetTextColor(0.6, 1, 0.6, 1)
+    newTabBtn:SetScript("OnLeave", function()
+        addHoverTex:Hide()
         GameTooltip:Hide()
     end)
 
-    newTabBtn:SetScript("OnClick", function()
+    newTabBtn:SetScript("OnMouseDown", function()
         PlaySound(808)
         DeckSuite_CreateNewChatTab()
     end)
 
-    local settingsBtn = CreateFrame("Button", "DeckSuiteChatSettingsBtn", tabPanel, "BackdropTemplate")
-    settingsBtn:SetSize(28, 28)
-    settingsBtn:SetPoint("BOTTOM", tabPanel, "BOTTOM", 0, 2)
-    settingsBtn:SetBackdrop({
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-        tile = true,
-        tileSize = 16,
-        edgeSize = 12,
-        insets = {left = 2, right = 2, top = 2, bottom = 2}
-    })
-    settingsBtn:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
-    settingsBtn:SetBackdropBorderColor(0.5, 0.5, 0.5, 1.0)
+    if #DeckSuiteCustomChat.tabs >= 4 then
+        newTabBtn:Hide()
+    end
 
-    local settingsIcon = settingsBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    settingsIcon:SetPoint("CENTER")
-    settingsIcon:SetText("S") -- ⚙
-    settingsIcon:SetTextColor(0.8, 0.8, 0.8, 1)
+    tabPanel.newTabBtn = newTabBtn
 
-    settingsBtn:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(0.2, 0.2, 0.2, 1.0)
-        settingsIcon:SetTextColor(1, 1, 1, 1)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    local settingsBtn = CreateFrame("Frame", "DeckSuiteChatSettingsBtn", tabPanel)
+    settingsBtn:SetSize(32, 32)
+    settingsBtn:SetPoint("BOTTOM", tabPanel, "BOTTOM", 0, 1)
+    settingsBtn:EnableMouse(true)
+
+    local settingsNormalTex = settingsBtn:CreateTexture(nil, "BACKGROUND")
+    settingsNormalTex:SetTexture(addonPath .. "images\\tabs\\settings")
+    settingsNormalTex:SetAllPoints(settingsBtn)
+
+    local settingsHoverTex = settingsBtn:CreateTexture(nil, "ARTWORK")
+    settingsHoverTex:SetTexture(addonPath .. "images\\tabs\\settings_hover")
+    settingsHoverTex:SetAllPoints(settingsBtn)
+    settingsHoverTex:Hide()
+
+    settingsBtn:SetScript("OnEnter", function()
+        settingsHoverTex:Show()
+        GameTooltip:SetOwner(settingsBtn, "ANCHOR_RIGHT")
         GameTooltip:SetText("Chat Settings", 1, 1, 1)
         GameTooltip:AddLine("Opens Blizzard chat config", 0.7, 0.7, 0.7)
         GameTooltip:Show()
     end)
 
-    settingsBtn:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
-        settingsIcon:SetTextColor(0.8, 0.8, 0.8, 1)
+    settingsBtn:SetScript("OnLeave", function()
+        settingsHoverTex:Hide()
         GameTooltip:Hide()
     end)
 
-    settingsBtn:SetScript("OnClick", function()
+    settingsBtn:SetScript("OnMouseDown", function()
         PlaySound(808)
         DeckSuite_OpenChatSettings()
     end)
@@ -422,6 +446,14 @@ function DeckSuite_RefreshTabs()
             end
         end
 
+        if tabPanel.newTabBtn then
+            if #DeckSuiteCustomChat.tabs >= 4 then
+                tabPanel.newTabBtn:Hide()
+            else
+                tabPanel.newTabBtn:Show()
+            end
+        end
+
         DeckSuite_UpdateTabVisuals()
         DeckSuite_RefreshTabDisplay()
     end
@@ -461,6 +493,22 @@ StaticPopupDialogs["DECKSUITE_NEW_TAB"] = {
     preferredIndex = 3,
 }
 
+StaticPopupDialogs["DECKSUITE_DELETE_TAB"] = {
+    text = "Delete chat tab '%s'?",
+    button1 = "Delete",
+    button2 = "Cancel",
+    OnAccept = function(self)
+        local data = self.data
+        if data and data.chatFrameIndex then
+            DeckSuite_DoDeleteChatTab(data.chatFrameIndex)
+        end
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
 function DeckSuite_DoCreateChatTab(name)
     if FCF_OpenNewWindow then
         local newChatFrame = FCF_OpenNewWindow(name)
@@ -479,7 +527,37 @@ function DeckSuite_DoCreateChatTab(name)
 end
 
 function DeckSuite_CreateNewChatTab()
+    if #DeckSuiteCustomChat.tabs >= 4 then
+        print("|cffff0000Cannot create more than 4 chat tabs.|r")
+        return
+    end
+
     StaticPopup_Show("DECKSUITE_NEW_TAB")
+end
+
+function DeckSuite_ConfirmDeleteTab(tab, tabIndex)
+    PlaySound(808)
+    local dialog = StaticPopup_Show("DECKSUITE_DELETE_TAB", tab.name)
+    if dialog then
+        dialog.data = { chatFrameIndex = tab.chatFrameIndex, tabIndex = tabIndex }
+    end
+end
+
+function DeckSuite_DoDeleteChatTab(chatFrameIndex)
+    if not chatFrameIndex then
+        return
+    end
+
+    local chatFrame = _G["ChatFrame" .. chatFrameIndex]
+    if chatFrame then
+        if FCF_Close then
+            FCF_Close(chatFrame)
+        end
+
+        C_Timer.After(0.3, function()
+            DeckSuite_RefreshTabs()
+        end)
+    end
 end
 
 function DeckSuite_OpenChatSettings()
@@ -1078,7 +1156,7 @@ function DeckSuite_HandleChatEvent(event, ...)
     elseif chatType == "EMOTE" then
         formattedMessage = string.format("%s %s", playerLink, message)
     elseif chatType == "MONSTER_EMOTE" then
-        formattedMessage = message
+        formattedMessage = string.format(message, playerLink)
     elseif chatType == "TEXT_EMOTE" or chatType == "SKILL_UP" or chatType == "SKILL_GAINED"
         or chatType == "COMBAT_XP_GAIN" or chatType == "MONEY" or chatType == "TRADESKILLS"
         or chatType == "PET_INFO" or chatType == "COMBAT_HONOR_GAIN" or chatType == "COMBAT_MISC_INFO" then
