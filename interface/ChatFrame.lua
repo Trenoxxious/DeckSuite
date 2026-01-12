@@ -85,6 +85,23 @@ function DeckSuite_BuildChannelSet(chatFrameIndex)
     return channels
 end
 
+function DeckSuite_UpdateChatFrameFontSize()
+    if not DeckSuiteMainChatFrame or not DeckSuiteMainChatFrame.messageFrame then
+        return
+    end
+
+    local messageFrame = DeckSuiteMainChatFrame.messageFrame
+    local fontSize = DeckSuite.db.profile.chatFrame.fontSize or 14
+
+    local fontPath, _, fontFlags = messageFrame:GetFont()
+
+    if not fontPath then
+        fontPath = "Fonts\\FRIZQT__.TTF"
+    end
+
+    messageFrame:SetFont(fontPath, fontSize, fontFlags)
+end
+
 function DeckSuite_BuildMessageTypeSet(chatFrameIndex)
     local chatFrame = _G["ChatFrame" .. chatFrameIndex]
     if not chatFrame then
@@ -812,6 +829,8 @@ function DeckSuite_CreateCustomChatFrame()
     mainFrame.messageFrame = messageFrame
     mainFrame.editBox = editBox
     _G.DeckSuiteMainChatFrame = mainFrame
+
+    DeckSuite_UpdateChatFrameFontSize()
 
     DeckSuite_UpdateChatDisplay()
     DeckSuite_RegisterChatEvents()

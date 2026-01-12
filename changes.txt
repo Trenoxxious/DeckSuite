@@ -1,5 +1,7 @@
 Added setting for unit frame vertical offset.
 Added setting for combo frame vertical offset.
 Added setting for combo frame scale.
+Added setting to adjust chat text size.
 Updating settings to properly update unit frames in all scenarios, even when not showing.
 Fixed issues with portait updating when enabling/disabling Ultra Hardcore mode.
+Fixed an issue with the reply interface not using the new DB variable.

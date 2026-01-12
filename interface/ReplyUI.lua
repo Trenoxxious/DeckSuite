@@ -107,7 +107,7 @@ function DeckSuite_CreateReplyUI()
 
 	function frame:Update()
 		for i = 1, visibleCount do
-			local whisperData = NoxxDeckSuiteWhispers[i]
+			local whisperData = DeckSuiteWhispers[i]
 			local btn = self.buttons[i]
 			if whisperData and whisperData.name then
 				btn.whisperName = whisperData.name

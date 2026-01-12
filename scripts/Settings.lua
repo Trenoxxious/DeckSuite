@@ -9,6 +9,9 @@ local defaults = {
             comboPointFrameScale = 1.0,
 			ultraHardcoreMode = false,
 		},
+		chatFrame = {
+			fontSize = 12,
+		},
 	}
 }
 
@@ -28,7 +31,7 @@ local options = {
 				},
 				description = {
 					type = "description",
-					name = "Adjust the position of player and target frames.",
+					name = "Adjust various settings of the unit frames.",
 					order = 2,
 				},
                 ultraHardcoreMode = {
@@ -115,6 +118,48 @@ local options = {
 				},
 			},
 		},
+        chatFrame = {
+			name = "Chat Frame",
+			type = "group",
+			order = 2,
+			args = {
+				header = {
+					type = "header",
+					name = "Chat Frame Settings",
+					order = 1,
+				},
+				description = {
+					type = "description",
+					name = "Adjust various settings relating to the chat frame.",
+					order = 2,
+				},
+                fontSize = {
+					type = "select",
+					name = "Chat Frame Font Size",
+					desc = "Adjusts the size of the chat frame text.",
+					order = 3,
+                    style = "dropdown",
+                    values = {
+                        [10] = "10",
+                        [12] = "12 (Default)",
+                        [14] = "14",
+                        [16] = "16",
+                        [18] = "18",
+                        [20] = "20",
+                        [22] = "22",
+                        [24] = "24",
+                    },
+					width = "full",
+					get = function(info)
+						return DeckSuite.db.profile.chatFrame.fontSize
+					end,
+					set = function(info, value)
+						DeckSuite.db.profile.chatFrame.fontSize = value
+						DeckSuite_UpdateChatFrameFontSize()
+					end,
+				},
+            },
+        },
 	},
 }
 
