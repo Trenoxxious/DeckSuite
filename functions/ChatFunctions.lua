@@ -30,32 +30,3 @@ function DeckSuite_ScaleChatButtonFrame()
         end
 	end
 end
-
-function DeckSuite_ReplaceButtonIcons()
-	local addonPath = "Interface\\AddOns\\DeckSuite\\"
-
-	for i = 1, NUM_CHAT_WINDOWS do
-		local frameName = "ChatFrame" .. i .. "ButtonFrame"
-
-		local bottomButton = _G[frameName .. "BottomButton"]
-		if bottomButton then
-			bottomButton:SetNormalTexture(addonPath .. "images\\bottom_button_new")
-			bottomButton:SetPushedTexture(addonPath .. "images\\bottom_button_hover_new")
-			bottomButton:SetHighlightTexture(addonPath .. "images\\bottom_button_hover_new")
-		end
-
-		local downButton = _G[frameName .. "DownButton"]
-		if downButton then
-			downButton:SetNormalTexture(addonPath .. "images\\down_button")
-			downButton:SetPushedTexture(addonPath .. "images\\down_button")
-			downButton:SetHighlightTexture(addonPath .. "images\\down_button")
-		end
-
-		local upButton = _G[frameName .. "UpButton"]
-		if upButton then
-			upButton:SetNormalTexture(addonPath .. "images\\up_button")
-			upButton:SetPushedTexture(addonPath .. "images\\up_button")
-			upButton:SetHighlightTexture(addonPath .. "images\\up_button")
-		end
-	end
-end

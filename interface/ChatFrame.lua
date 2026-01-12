@@ -689,12 +689,12 @@ function DeckSuite_CreateCustomChatFrame()
     buttonPanel:SetFrameStrata("LOW")
 
     local addonPath = "Interface\\AddOns\\DeckSuite\\"
-    local buttonSize = 38
-    local spacing = -5
+    local buttonSize = 36
+    local spacing = -4
 
     local newChatBtn = CreateFrame("Frame", "DeckSuiteCustomChatNewChatBtn", buttonPanel)
     newChatBtn:SetSize(buttonSize, buttonSize)
-    newChatBtn:SetPoint("TOP", buttonPanel, "TOP", 0, -8)
+    newChatBtn:SetPoint("TOP", buttonPanel, "TOP", 0, -10)
     newChatBtn:EnableMouse(true)
 
     local chatNormalTex = newChatBtn:CreateTexture(nil, "BACKGROUND")
@@ -730,11 +730,11 @@ function DeckSuite_CreateCustomChatFrame()
     replyBtn:EnableMouse(true)
 
     local replyNormalTex = replyBtn:CreateTexture(nil, "BACKGROUND")
-    replyNormalTex:SetTexture(addonPath .. "images\\reply_button")
+    replyNormalTex:SetTexture(addonPath .. "images\\reply_button_new")
     replyNormalTex:SetAllPoints(replyBtn)
 
     local replyHoverTex = replyBtn:CreateTexture(nil, "ARTWORK")
-    replyHoverTex:SetTexture(addonPath .. "images\\reply_button_hover")
+    replyHoverTex:SetTexture(addonPath .. "images\\reply_button_hover_new")
     replyHoverTex:SetAllPoints(replyBtn)
     replyHoverTex:Hide()
 
@@ -757,13 +757,23 @@ function DeckSuite_CreateCustomChatFrame()
         end
     end)
 
-    local upBtn = CreateFrame("Button", "DeckSuiteCustomChatUpBtn", buttonPanel)
+    local upBtn = CreateFrame("Frame", "DeckSuiteCustomChatUpBtn", buttonPanel)
     upBtn:SetSize(buttonSize, buttonSize)
     upBtn:SetPoint("TOP", replyBtn, "BOTTOM", 0, -spacing)
-    upBtn:SetNormalTexture(addonPath .. "images\\up_button")
-    upBtn:SetPushedTexture(addonPath .. "images\\up_button")
-    upBtn:SetHighlightTexture(addonPath .. "images\\up_button")
-    upBtn:SetScript("OnClick", function()
+    upBtn:EnableMouse(true)
+
+    local upNormalTex = upBtn:CreateTexture(nil, "BACKGROUND")
+    upNormalTex:SetTexture(addonPath .. "images\\up_button_new")
+    upNormalTex:SetAllPoints(upBtn)
+
+    local upHoverTex = upBtn:CreateTexture(nil, "ARTWORK")
+    upHoverTex:SetTexture(addonPath .. "images\\up_button_hover_new")
+    upHoverTex:SetAllPoints(upBtn)
+    upHoverTex:Hide()
+
+    upBtn:SetScript("OnEnter", function() upHoverTex:Show() end)
+    upBtn:SetScript("OnLeave", function() upHoverTex:Hide() end)
+    upBtn:SetScript("OnMouseDown", function()
         PlaySound(808)
         if mainFrame.messageFrame then
             mainFrame.messageFrame:ScrollUp()
@@ -771,13 +781,23 @@ function DeckSuite_CreateCustomChatFrame()
         end
     end)
 
-    local downBtn = CreateFrame("Button", "DeckSuiteCustomChatDownBtn", buttonPanel)
+    local downBtn = CreateFrame("Frame", "DeckSuiteCustomChatDownBtn", buttonPanel)
     downBtn:SetSize(buttonSize, buttonSize)
     downBtn:SetPoint("TOP", upBtn, "BOTTOM", 0, -spacing)
-    downBtn:SetNormalTexture(addonPath .. "images\\down_button")
-    downBtn:SetPushedTexture(addonPath .. "images\\down_button")
-    downBtn:SetHighlightTexture(addonPath .. "images\\down_button")
-    downBtn:SetScript("OnClick", function()
+    downBtn:EnableMouse(true)
+
+    local downNormalTex = downBtn:CreateTexture(nil, "BACKGROUND")
+    downNormalTex:SetTexture(addonPath .. "images\\down_button_new")
+    downNormalTex:SetAllPoints(downBtn)
+
+    local downHoverTex = downBtn:CreateTexture(nil, "ARTWORK")
+    downHoverTex:SetTexture(addonPath .. "images\\down_button_hover_new")
+    downHoverTex:SetAllPoints(downBtn)
+    downHoverTex:Hide()
+
+    downBtn:SetScript("OnEnter", function() downHoverTex:Show() end)
+    downBtn:SetScript("OnLeave", function() downHoverTex:Hide() end)
+    downBtn:SetScript("OnMouseDown", function()
         PlaySound(808)
         if mainFrame.messageFrame then
             mainFrame.messageFrame:ScrollDown()
@@ -785,13 +805,23 @@ function DeckSuite_CreateCustomChatFrame()
         end
     end)
 
-    local bottomBtn = CreateFrame("Button", "DeckSuiteCustomChatBottomBtn", buttonPanel)
+    local bottomBtn = CreateFrame("Frame", "DeckSuiteCustomChatBottomBtn", buttonPanel)
     bottomBtn:SetSize(buttonSize, buttonSize)
     bottomBtn:SetPoint("TOP", downBtn, "BOTTOM", 0, -spacing)
-    bottomBtn:SetNormalTexture(addonPath .. "images\\bottom_button_new")
-    bottomBtn:SetPushedTexture(addonPath .. "images\\bottom_button_hover_new")
-    bottomBtn:SetHighlightTexture(addonPath .. "images\\bottom_button_hover_new")
-    bottomBtn:SetScript("OnClick", function()
+    bottomBtn:EnableMouse(true)
+
+    local bottomNormalTex = bottomBtn:CreateTexture(nil, "BACKGROUND")
+    bottomNormalTex:SetTexture(addonPath .. "images\\bottom_button_new")
+    bottomNormalTex:SetAllPoints(bottomBtn)
+
+    local bottomHoverTex = bottomBtn:CreateTexture(nil, "ARTWORK")
+    bottomHoverTex:SetTexture(addonPath .. "images\\bottom_button_hover_new")
+    bottomHoverTex:SetAllPoints(bottomBtn)
+    bottomHoverTex:Hide()
+
+    bottomBtn:SetScript("OnEnter", function() bottomHoverTex:Show() end)
+    bottomBtn:SetScript("OnLeave", function() bottomHoverTex:Hide() end)
+    bottomBtn:SetScript("OnMouseDown", function()
         PlaySound(808)
         if mainFrame.messageFrame then
             mainFrame.messageFrame:ScrollToBottom()
