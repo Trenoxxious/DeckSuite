@@ -1,11 +1,11 @@
-## Interface: 11508
-## Title: |cFF65D6E7DeckSuite|r |cFF9BF2D8v1.0.7|r
+## Interface: 20505
+## Title: |cFF65D6E7DeckSuite|r |cFF9BF2D8v1.0.71|r
 ## Notes: Quality of life improvements for playing on Steam Deck.
 ## Author: Noxxious
-## Version: 1.0.7
+## Version: 1.0.71
 ## X-Curse-Project-ID: 1405080
 ## X-Category: Interface Enhancements
-## X-Compatible-With: 11508
+## X-Compatible-With: 20505
 ## SavedVariables: DeckSuite, DeckSuiteWhispers
 ## SavedVariablesPerCharacter: DeckSuiteChar
 
