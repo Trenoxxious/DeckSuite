@@ -7,11 +7,20 @@ local BUFF_SIZE = 24
 local BUFFS_PER_ROW = 6
 local BUFF_SPACING = 2
 
+local PARTY_SCALE = 0.65
+local PARTY_FRAME_WIDTH = FRAME_WIDTH * PARTY_SCALE
+local PARTY_FRAME_HEIGHT = FRAME_HEIGHT * PARTY_SCALE
+local PARTY_PORTRAIT_SIZE = PORTRAIT_SIZE * PARTY_SCALE
+local PARTY_BAR_WIDTH = BAR_WIDTH * PARTY_SCALE
+local PARTY_BAR_HEIGHT = BAR_HEIGHT * PARTY_SCALE
+
 local playerFrameRef = nil
 local targetFrameRef = nil
 local comboFrameRef = nil
 local updateFrameRef = nil
 local updateTargetRef = nil
+local partyFramesRef = {}
+local partyDebugMode = false
 
 local function FormatValue(current, max)
 	if current >= 1000000 then
@@ -253,6 +262,28 @@ function DeckSuite_UpdateUnitFrameBars()
 				targetFrameRef.powerBar:Hide()
 			else
 				targetFrameRef.powerBar:Show()
+			end
+		end
+	end
+
+	for i = 1, 4 do
+		if partyFramesRef[i] then
+			if partyFramesRef[i].healthBar then
+				if ultraHardcore then
+					partyFramesRef[i].healthBar:Hide()
+				else
+					partyFramesRef[i].healthBar:Show()
+				end
+			end
+			if partyFramesRef[i].powerBar then
+				if ultraHardcore then
+					partyFramesRef[i].powerBar:Hide()
+				else
+					partyFramesRef[i].powerBar:Show()
+				end
+			end
+			if partyFramesRef[i].UpdatePartyFrame then
+				partyFramesRef[i].UpdatePartyFrame()
 			end
 		end
 	end
@@ -685,6 +716,11 @@ function DeckSuite_CreateTargetFrame()
 			end
 		end
 
+		frame.portrait:Show()
+		frame.portrait:SetUnit("target")
+		frame.portrait:SetPortraitZoom(1)
+		frame.portrait:SetCamera(0)
+
 		local health = UnitHealth("target")
 		local healthMax = UnitHealthMax("target")
 		local power = UnitPower("target")
@@ -807,9 +843,6 @@ function DeckSuite_CreateTargetFrame()
 	frame:SetScript("OnEvent", function(self, event, unit)
 		if event == "PLAYER_TARGET_CHANGED" then
 			UpdateTargetFrame()
-            frame.portrait:SetUnit("target")
-            frame.portrait:SetPortraitZoom(1)
-            frame.portrait:SetCamera(0)
         end
 
         if (unit and unit == "target") then
@@ -819,9 +852,6 @@ function DeckSuite_CreateTargetFrame()
 
 	frame:SetScript("OnShow", function()
         UpdateTargetFrame()
-        frame.portrait:SetUnit("target")
-		frame.portrait:SetPortraitZoom(1)
-		frame.portrait:SetCamera(0)
     end)
 
 	DeckSuite_UpdateUnitFrameBars()
@@ -886,13 +916,11 @@ function DeckSuite_CreateComboPointDisplay()
             comboFrame:Show()
 
             if comboPoints == 5 then
-                -- All 5 combo points - show special "all" texture
                 for i = 1, 5 do
                     comboFrame.dots[i].activeTex:Hide()
                     comboFrame.dots[i].allTex:Show()
                 end
             else
-                -- Normal combo point display
                 for i = 1, 5 do
                     comboFrame.dots[i].allTex:Hide()
                     if i <= comboPoints then
@@ -919,6 +947,397 @@ function DeckSuite_CreateComboPointDisplay()
 	UpdateComboPoints()
 
 	_G.DeckSuiteComboPointFrame = comboFrame
+end
+
+local function CreatePartyFrame(index)
+	local unitID = "party" .. index
+	local frameName = "DeckSuitePartyFrame" .. index
+
+	if _G[frameName] then return _G[frameName] end
+
+	local frame = CreateFrame("Button", frameName, UIParent, "SecureUnitButtonTemplate,BackdropTemplate")
+	frame:SetSize(PARTY_FRAME_WIDTH, PARTY_FRAME_HEIGHT)
+	frame:SetBackdrop({
+		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+		tile = true, tileSize = 16, edgeSize = 12,
+		insets = {left = 2, right = 2, top = 2, bottom = 2}
+	})
+	frame:SetBackdropColor(0, 0, 0, 0.9)
+	frame:SetBackdropBorderColor(1, 1, 1, 0.8)
+	frame:RegisterForClicks("AnyUp")
+	frame:SetFrameStrata("LOW")
+	frame:SetAttribute("unit", unitID)
+	frame:SetAttribute("*type1", "target")
+	frame:SetAttribute("*type2", "togglemenu")
+	frame.mainFrame = frame
+
+	local portraitTexture = frame:CreateTexture(nil, "ARTWORK")
+	portraitTexture:SetSize(PARTY_PORTRAIT_SIZE, PARTY_PORTRAIT_SIZE)
+	portraitTexture:SetPoint("LEFT", frame, "LEFT", 3, 0)
+	frame.portraitTexture = portraitTexture
+
+	local nameText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	nameText:SetPoint("BOTTOMLEFT", portraitTexture, "TOP", -20, 5)
+	nameText:SetJustifyH("LEFT")
+	nameText:SetTextColor(1, 1, 1, 1)
+	frame.nameText = nameText
+
+	local healthBar = CreateFrame("StatusBar", nil, frame)
+	healthBar:SetSize(PARTY_BAR_WIDTH, PARTY_BAR_HEIGHT)
+	healthBar:SetPoint("TOPLEFT", portraitTexture, "TOPRIGHT", 0, 0)
+	healthBar:SetStatusBarTexture("Interface/TargetingFrame/UI-StatusBar")
+	healthBar:SetStatusBarColor(0, 1, 0, 1)
+	healthBar:SetMinMaxValues(0, 100)
+	healthBar:SetValue(100)
+	frame.healthBar = healthBar
+
+	local healthBg = healthBar:CreateTexture(nil, "BACKGROUND")
+	healthBg:SetAllPoints(healthBar)
+	healthBg:SetTexture("Interface/TargetingFrame/UI-StatusBar")
+	healthBg:SetVertexColor(0, 0.3, 0, 0.5)
+
+	local healthText = healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	healthText:SetPoint("CENTER", healthBar, "CENTER", 0, 0)
+	healthText:SetTextColor(1, 1, 1, 1)
+	frame.healthText = healthText
+
+	local powerBar = CreateFrame("StatusBar", nil, frame)
+	powerBar:SetSize(PARTY_BAR_WIDTH, PARTY_BAR_HEIGHT)
+	powerBar:SetPoint("TOPLEFT", healthBar, "BOTTOMLEFT", 0, 0)
+	powerBar:SetStatusBarTexture("Interface/TargetingFrame/UI-StatusBar")
+	powerBar:SetStatusBarColor(0, 0.5, 1, 1)
+	powerBar:SetMinMaxValues(0, 100)
+	powerBar:SetValue(100)
+	frame.powerBar = powerBar
+
+	local powerBg = powerBar:CreateTexture(nil, "BACKGROUND")
+	powerBg:SetAllPoints(powerBar)
+	powerBg:SetTexture("Interface/TargetingFrame/UI-StatusBar")
+	powerBg:SetVertexColor(0, 0.15, 0.3, 0.5)
+
+	local powerText = powerBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	powerText:SetPoint("CENTER", powerBar, "CENTER", 0, 0)
+	powerText:SetTextColor(1, 1, 1, 1)
+	frame.powerText = powerText
+
+	local PARTY_DEBUFF_SIZE = 20
+	local PARTY_DEBUFFS_PER_ROW = 8
+	local PARTY_DEBUFF_SPACING = 2
+
+	frame.debuffButtons = {}
+	for i = 1, 8 do
+		local button = CreateFrame("Frame", nil, frame)
+		button:SetSize(PARTY_DEBUFF_SIZE, PARTY_DEBUFF_SIZE)
+
+		local border = button:CreateTexture(nil, "BACKGROUND")
+		border:SetAllPoints(button)
+		border:SetColorTexture(1, 0, 0, 1)
+		button.border = border
+
+		local bg = button:CreateTexture(nil, "BORDER")
+		bg:SetPoint("TOPLEFT", button, "TOPLEFT", 2, -2)
+		bg:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
+		bg:SetColorTexture(0, 0, 0, 1)
+
+		local icon = button:CreateTexture(nil, "ARTWORK")
+		icon:SetPoint("TOPLEFT", button, "TOPLEFT", 2, -2)
+		icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
+		icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+		button.icon = icon
+
+		local count = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+		count:SetTextColor(1, 1, 1, 1)
+		button.count = count
+
+		local col = (i - 1) % PARTY_DEBUFFS_PER_ROW
+		local row = math.floor((i - 1) / PARTY_DEBUFFS_PER_ROW)
+		button:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 3 + col * (PARTY_DEBUFF_SIZE + PARTY_DEBUFF_SPACING), -3 - row * (PARTY_DEBUFF_SIZE + PARTY_DEBUFF_SPACING))
+
+		button:Hide()
+		frame.debuffButtons[i] = button
+	end
+
+	local function UpdatePartyFrame()
+		if partyDebugMode and not UnitExists(unitID) then
+			frame.nameText:SetText("Party " .. index .. " (Debug)")
+			frame.healthBar:SetMinMaxValues(0, 1000)
+			frame.healthBar:SetValue(750)
+			frame.healthText:SetText("750")
+			frame.healthBar:SetStatusBarColor(0, 1, 0, 1)
+			frame.powerBar:Show()
+			frame.powerBar:SetMinMaxValues(0, 100)
+			frame.powerBar:SetValue(80)
+			frame.powerText:SetText("80")
+			frame.powerBar:SetStatusBarColor(0, 0.5, 1, 1)
+			frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 1)
+			frame.portraitTexture:SetTexture("Interface\\CharacterFrame\\TempPortrait")
+
+			local debugDebuffs = {
+				{icon = "Interface\\Icons\\Spell_Shadow_CurseOfTongues", type = "Curse"},
+				{icon = "Interface\\Icons\\Spell_Nature_Poison", type = "Poison"},
+				{icon = "Interface\\Icons\\Ability_Creature_Disease_02", type = "Disease"},
+			}
+
+			for debuffIdx = 1, #debugDebuffs do
+				local button = frame.debuffButtons[debuffIdx]
+				if button then
+					button.icon:SetTexture(debugDebuffs[debuffIdx].icon)
+					button.count:SetText("")
+
+					local r, g, b = 1, 0, 0
+					if debugDebuffs[debuffIdx].type == "Magic" then
+						r, g, b = 0.2, 0.6, 1
+					elseif debugDebuffs[debuffIdx].type == "Curse" then
+						r, g, b = 0.6, 0, 1
+					elseif debugDebuffs[debuffIdx].type == "Disease" then
+						r, g, b = 0.6, 0.4, 0
+					elseif debugDebuffs[debuffIdx].type == "Poison" then
+						r, g, b = 0, 0.6, 0
+					end
+					button.border:SetColorTexture(r, g, b, 1)
+					button:Show()
+				end
+			end
+
+			for debuffIdx = #debugDebuffs + 1, 8 do
+				if frame.debuffButtons[debuffIdx] then
+					frame.debuffButtons[debuffIdx]:Hide()
+				end
+			end
+			return
+		end
+
+		if not UnitExists(unitID) then
+			return
+		end
+
+		local health = UnitHealth(unitID)
+		local healthMax = UnitHealthMax(unitID)
+		local power = UnitPower(unitID)
+		local powerMax = UnitPowerMax(unitID)
+		local powerType = UnitPowerType(unitID)
+		local name = UnitName(unitID)
+		local level = UnitLevel(unitID)
+
+		SetPortraitTexture(frame.portraitTexture, unitID)
+
+		local ultraHardcore = DeckSuite and DeckSuite.db and DeckSuite.db.profile.unitFrames.ultraHardcoreMode or false
+
+		if name then
+			if ultraHardcore then
+				frame.nameText:SetText(name)
+			else
+				frame.nameText:SetText(name .. " (Lvl " .. level .. ")")
+			end
+		end
+
+		local _, class = UnitClass(unitID)
+
+		if not ultraHardcore then
+			frame.healthBar:Show()
+			frame.healthBar:SetMinMaxValues(0, healthMax)
+			frame.healthBar:SetValue(health)
+			frame.healthText:SetText(FormatValue(health, healthMax))
+
+			local healthPercent = health / healthMax
+
+			if healthPercent > 0.5 then
+				if class and RAID_CLASS_COLORS[class] then
+					local color = RAID_CLASS_COLORS[class]
+					frame.healthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
+				else
+					frame.healthBar:SetStatusBarColor(0, 1, 0, 1)
+				end
+			elseif healthPercent > 0.25 then
+				frame.healthBar:SetStatusBarColor(1, 1, 0, 1)
+			else
+				frame.healthBar:SetStatusBarColor(1, 0, 0, 1)
+			end
+
+			if powerMax > 0 then
+				frame.powerBar:Show()
+				frame.powerBar:SetMinMaxValues(0, powerMax)
+				frame.powerBar:SetValue(power)
+				frame.powerText:SetText(FormatValue(power, powerMax))
+
+				local r, g, b = unpack(GetPowerColor(powerType))
+				frame.powerBar:SetStatusBarColor(r, g, b, 1)
+			else
+				frame.powerBar:Hide()
+			end
+		else
+			frame.healthBar:Hide()
+			frame.powerBar:Hide()
+		end
+
+		if class then
+			local color = RAID_CLASS_COLORS[class]
+			if color then
+				frame:SetBackdropBorderColor(color.r, color.g, color.b, 1)
+			end
+		end
+
+		local debuffIndex = 1
+		for i = 1, 40 do
+			local debuffName, debuffIcon, debuffCount, debuffType = UnitDebuff(unitID, i)
+			if not debuffName then break end
+
+			if debuffIndex <= 8 then
+				local button = frame.debuffButtons[debuffIndex]
+				button.icon:SetTexture(debuffIcon)
+				button.count:SetText(debuffCount > 1 and debuffCount or "")
+
+				local r, g, b = 1, 0, 0
+				if debuffType == "Magic" then
+					r, g, b = 0.2, 0.6, 1
+				elseif debuffType == "Curse" then
+					r, g, b = 0.6, 0, 1
+				elseif debuffType == "Disease" then
+					r, g, b = 0.6, 0.4, 0
+				elseif debuffType == "Poison" then
+					r, g, b = 0, 0.6, 0
+				end
+				button.border:SetColorTexture(r, g, b, 1)
+				button:Show()
+
+				debuffIndex = debuffIndex + 1
+			else
+				break
+			end
+		end
+
+		for i = debuffIndex, 8 do
+			frame.debuffButtons[i]:Hide()
+		end
+	end
+
+	frame.UpdatePartyFrame = UpdatePartyFrame
+
+	frame:RegisterUnitEvent("UNIT_HEALTH", unitID)
+	frame:RegisterUnitEvent("UNIT_MAXHEALTH", unitID)
+	frame:RegisterUnitEvent("UNIT_POWER_UPDATE", unitID)
+	frame:RegisterUnitEvent("UNIT_MAXPOWER", unitID)
+	frame:RegisterUnitEvent("UNIT_DISPLAYPOWER", unitID)
+	frame:RegisterUnitEvent("UNIT_AURA", unitID)
+	frame:RegisterEvent("PARTY_MEMBER_ENABLE")
+	frame:RegisterEvent("PARTY_MEMBER_DISABLE")
+	frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+
+	frame:SetScript("OnEvent", function(self, event, unit)
+		if event == "GROUP_ROSTER_UPDATE" or event == "PARTY_MEMBER_ENABLE" or event == "PARTY_MEMBER_DISABLE" then
+			if UnitExists(unitID) then
+				UpdatePartyFrame()
+			end
+		elseif unit and unit == unitID then
+			UpdatePartyFrame()
+		end
+	end)
+
+	frame:SetScript("OnShow", function()
+		if UnitExists(unitID) then
+			UpdatePartyFrame()
+		end
+	end)
+
+	C_Timer.NewTicker(0.5, function()
+		if frame:IsShown() and UnitExists(unitID) then
+			UpdatePartyFrame()
+		end
+	end)
+
+	frame:Hide()
+	return frame
+end
+
+local partyUpdateVisibilityFunc = nil
+
+local function HideDefaultPartyFrames()
+	for i = 1, 4 do
+		local partyFrame = _G["PartyMemberFrame" .. i]
+		if partyFrame then
+			partyFrame:UnregisterAllEvents()
+			partyFrame:Hide()
+			partyFrame:SetScript("OnShow", function(self)
+				self:Hide()
+			end)
+		end
+	end
+
+	if _G["PartyFrame"] then
+		_G["PartyFrame"]:UnregisterAllEvents()
+		_G["PartyFrame"]:Hide()
+		_G["PartyFrame"]:SetScript("OnShow", function(self)
+			self:Hide()
+		end)
+	end
+
+	if _G["CompactPartyFrame"] then
+		_G["CompactPartyFrame"]:UnregisterAllEvents()
+		_G["CompactPartyFrame"]:Hide()
+		_G["CompactPartyFrame"]:SetScript("OnShow", function(self)
+			self:Hide()
+		end)
+	end
+end
+
+function DeckSuite_CreatePartyFrames()
+	HideDefaultPartyFrames()
+
+	for i = 1, 4 do
+		local frame = CreatePartyFrame(i)
+		partyFramesRef[i] = frame
+
+		if i == 1 then
+			frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 1, -215)
+		else
+			frame:SetPoint("TOPLEFT", partyFramesRef[i - 1], "BOTTOMLEFT", 0, -40)
+		end
+	end
+
+	local function UpdatePartyFrameVisibility()
+		local numPartyMembers = GetNumSubgroupMembers()
+
+		for i = 1, 4 do
+			if partyFramesRef[i] then
+				if partyDebugMode or (i <= numPartyMembers and UnitExists("party" .. i)) then
+					partyFramesRef[i]:Show()
+					if partyFramesRef[i].UpdatePartyFrame then
+						partyFramesRef[i].UpdatePartyFrame()
+					end
+				else
+					partyFramesRef[i]:Hide()
+				end
+			end
+		end
+	end
+
+	partyUpdateVisibilityFunc = UpdatePartyFrameVisibility
+
+	local partyUpdateFrame = CreateFrame("Frame")
+	partyUpdateFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
+	partyUpdateFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	partyUpdateFrame:SetScript("OnEvent", function()
+		UpdatePartyFrameVisibility()
+		HideDefaultPartyFrames()
+	end)
+
+	UpdatePartyFrameVisibility()
+
+	C_Timer.NewTicker(1, function()
+		HideDefaultPartyFrames()
+	end)
+end
+
+function DeckSuite_TogglePartyDebugMode()
+	partyDebugMode = not partyDebugMode
+
+	if partyUpdateVisibilityFunc then
+		partyUpdateVisibilityFunc()
+	end
+
+	return partyDebugMode
 end
 
 function DeckSuite_RepositionRaidAndPartyFrames()
@@ -949,6 +1368,7 @@ function DeckSuite_InitializeUnitFrames()
 	DeckSuite_CreatePlayerFrame()
 	DeckSuite_CreateTargetFrame()
 	DeckSuite_CreateComboPointDisplay()
+	DeckSuite_CreatePartyFrames()
 
 	C_Timer.After(1, function()
 		DeckSuite_RepositionRaidAndPartyFrames()
@@ -957,7 +1377,6 @@ function DeckSuite_InitializeUnitFrames()
 	C_Timer.After(0.5, function()
 		if BuffFrame then
 			BuffFrame:Show()
-			BuffFrame_Update()
 		end
 	end)
 

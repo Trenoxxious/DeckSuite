@@ -15,9 +15,30 @@ local function InitializeUI()
 	DeckSuite_InitializeUnitFrames()
 end
 
--- Debug command to dump tab information
 SLASH_DECKSUITEDEBUG1 = "/dsdebug"
-SlashCmdList["DECKSUITEDEBUG"] = function()
+SlashCmdList["DECKSUITEDEBUG"] = function(msg)
+	local args = {}
+	for word in string.gmatch(msg, "%S+") do
+		table.insert(args, word)
+	end
+
+	-- Handle /dsdebug party command
+	if args[1] == "party" then
+		if not DeckSuite_TogglePartyDebugMode then
+			UIErrorsFrame:AddMessage("DeckSuite: Party frames not initialized!", 1, 0, 0, 1, 5)
+			return
+		end
+
+		local enabled = DeckSuite_TogglePartyDebugMode()
+		if enabled then
+			UIErrorsFrame:AddMessage("DeckSuite: Party frame debug mode ENABLED - All 4 party frames now visible", 0, 1, 0, 1, 5)
+		else
+			UIErrorsFrame:AddMessage("DeckSuite: Party frame debug mode DISABLED - Party frames will only show when in party", 1, 1, 0, 1, 5)
+		end
+		return
+	end
+
+	-- Default debug behavior (chat frame debug)
 	if not DeckSuiteMainChatFrame or not DeckSuiteMainChatFrame.messageFrame then
 		UIErrorsFrame:AddMessage("DeckSuite: Chat frame not initialized!", 1, 0, 0, 1, 5)
 		return
@@ -28,10 +49,8 @@ SlashCmdList["DECKSUITEDEBUG"] = function()
 		return
 	end
 
-	-- Get debug text from ChatFrame.lua
 	local debugText = DeckSuite_GetTabDebugData()
 
-	-- Create or show debug frame
 	if not DeckSuiteDebugFrame then
 		local frame = CreateFrame("Frame", "DeckSuiteDebugFrame", UIParent, "BackdropTemplate")
 		frame:SetSize(500, 400)
@@ -88,16 +107,13 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 			return
 		end
 
-		-- Initialize settings system FIRST
 		DeckSuite_InitializeSettings()
 
-		-- Migrate old whisper data if exists (fixes SavedVariables bug)
 		if NoxxDeckSuiteWhispers then
 			DeckSuiteWhispers = NoxxDeckSuiteWhispers
 			NoxxDeckSuiteWhispers = nil
 		end
 
-		-- Initialize whisper table if needed
 		if not DeckSuiteWhispers then
 			DeckSuiteWhispers = {}
 		end
@@ -105,12 +121,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		InitializeUI()
 
 		self:UnregisterEvent("ADDON_LOADED")
-
 	elseif event == "PLAYER_LOGIN" then
 		InitializeUI()
 
 		self:UnregisterEvent("PLAYER_LOGIN")
-
 	elseif event == "CHAT_MSG_WHISPER" then
 		local msg, sender = ...
 		DeckSuite_AddRecentWhisper(sender, msg)

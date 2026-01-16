@@ -262,6 +262,7 @@ function DeckSuite_CreateTabButton(tabPanel, tab, tabIndex)
     button.activeTex = activeTex
 
     local longPressTimer = nil
+    local hideTooltipTimer = nil
     local longPressDuration = 1.0
 
     local clickCount = 0
@@ -276,9 +277,20 @@ function DeckSuite_CreateTabButton(tabPanel, tab, tabIndex)
         GameTooltip:SetText(tab.name, 1, 1, 1)
         GameTooltip:AddLine("Long-press or triple-click to delete", 0.7, 0.7, 0.7)
         GameTooltip:Show()
+        hideTooltipTimer = C_Timer.NewTimer(2, function ()
+            if hideTooltipTimer then
+                if hideTooltipTimer then
+                    hideTooltipTimer:Cancel()
+                end
+                GameTooltip:Hide()
+            end
+        end)
     end)
 
     button:SetScript("OnLeave", function(self)
+        if hideTooltipTimer then
+            hideTooltipTimer:Cancel()
+        end
         self.hoverTex:Hide()
         GameTooltip:Hide()
     end)
@@ -935,16 +947,6 @@ function DeckSuite_CreateCustomChatFrame()
     messageFrame:SetScript("OnHyperlinkClick", function(self, link, text, button)
         SetItemRef(link, text, button)
     end)
-    messageFrame:SetScript("OnHyperlinkEnter", function(self, link, text)
-        if link and not link:match("^player:") then
-            GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-            GameTooltip:SetHyperlink(link)
-            GameTooltip:Show()
-        end
-    end)
-    messageFrame:SetScript("OnHyperlinkLeave", function(self)
-        GameTooltip:Hide()
-    end)
 
     local editBox = ChatFrame1EditBox
     if editBox then
@@ -984,6 +986,36 @@ function DeckSuite_UpdateChatDisplay()
     end
 
     activeTab.lastDisplayedCount = #activeTab.messages
+end
+
+function DeckSuite_ConvertRaidIcons(text)
+    if not text then return text end
+
+    local iconMap = {
+        ["{star}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:0|t",
+        ["{circle}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:0|t",
+        ["{diamond}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_3:0|t",
+        ["{triangle}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4:0|t",
+        ["{moon}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_5:0|t",
+        ["{square}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:0|t",
+        ["{cross}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_7:0|t",
+        ["{skull}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:0|t",
+        ["{rt1}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:0|t",
+        ["{rt2}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:0|t",
+        ["{rt3}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_3:0|t",
+        ["{rt4}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4:0|t",
+        ["{rt5}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_5:0|t",
+        ["{rt6}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:0|t",
+        ["{rt7}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_7:0|t",
+        ["{rt8}"] = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:0|t",
+    }
+
+    for pattern, icon in pairs(iconMap) do
+        text = text:gsub(pattern:lower(), icon)
+        text = text:gsub(pattern:upper(), icon)
+    end
+
+    return text
 end
 
 function DeckSuite_HandleLevelUp(...)
@@ -1195,6 +1227,7 @@ function DeckSuite_HandleChatEvent(event, ...)
         formattedMessage = string.format("[%s]: %s", sender or "System", message)
     end
 
+    formattedMessage = DeckSuite_ConvertRaidIcons(formattedMessage)
     DeckSuite_AddChatMessageToTabs(formattedMessage, r, g, b, originalChatType, channelNum, channelName)
 end
 
