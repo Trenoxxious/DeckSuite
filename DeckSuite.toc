@@ -1,8 +1,8 @@
 ## Interface: 20505
-## Title: |cFF65D6E7DeckSuite|r |cFF9BF2D8v1.0.8|r
+## Title: |cFF65D6E7DeckSuite|r |cFF9BF2D8v1.0.9|r
 ## Notes: Quality of life improvements for playing on Steam Deck.
 ## Author: Noxxious
-## Version: 1.0.8
+## Version: 1.0.9
 ## Category-enUS: HUD
 ## X-Curse-Project-ID: 1405080
 ## X-Category: Interface Enhancements

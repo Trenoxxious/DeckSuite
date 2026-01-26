@@ -1,5 +1,0 @@
-Fixed majority of symbols not showing in the chat frame.
-Added a first-pass of custom party frames. You may experience glitches or bugs during this pass. No settings have been created for these frames.
-Fixed an issue with a BuffFrame_Update function that is no longer available on the TBC client.
-Tooltips, when switching chat tabs, now disappear automatically after 2 seconds.
-When clicking/hovering a hyperlink in the chat frame, a tooltip no longer appears at the cursor. This was simply annoying to deal with on Steam Deck.

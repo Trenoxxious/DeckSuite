@@ -649,7 +649,7 @@ function DeckSuite_CreateTargetFrame()
 	partyInviteButton:SetScript("OnMouseDown", function()
 		local targetName = UnitName("target")
 		if targetName and targetName ~= "" then
-			InviteUnit(targetName)
+			C_PartyInfo.InviteUnit(targetName)
 			PlaySound(808)
 		end
 	end)
