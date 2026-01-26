@@ -37,7 +37,7 @@ local CHAT_COLORS = {
 }
 
 local DeckSuiteCustomChat = {
-    maxMessages = 500,
+    maxMessages = 20,
     messages = {},
     currentChannel = "SAY",
     currentChannelCommand = "/s ",
@@ -614,7 +614,9 @@ function DeckSuite_RefreshTabDisplay()
     messageFrame:Clear()
 
     for _, msg in ipairs(activeTab.messages) do
-        messageFrame:AddMessage(msg.text, msg.r, msg.g, msg.b)
+        if msg and msg.text then
+            messageFrame:AddMessage(msg.text, msg.r or 1, msg.g or 1, msg.b or 1)
+        end
     end
 
     activeTab.lastDisplayedCount = #activeTab.messages
@@ -741,17 +743,31 @@ function DeckSuite_AddChatMessageToTabs(message, r, g, b, chatType, channelNum, 
     for _, tabIndex in ipairs(matchingTabs) do
         local tab = DeckSuiteCustomChat.tabs[tabIndex]
         if tab then
+            r = tonumber(r) or 1
+            g = tonumber(g) or 1
+            b = tonumber(b) or 1
+
+            if r ~= r then r = 1 end
+            if g ~= g then g = 1 end
+            if b ~= b then b = 1 end
+
             local msg = {
                 text = message,
-                r = r or 1,
-                g = g or 1,
-                b = b or 1
+                r = r,
+                g = g,
+                b = b
             }
 
             table.insert(tab.messages, msg)
 
-            while #tab.messages > DeckSuiteCustomChat.maxMessages do
-                table.remove(tab.messages, 1)
+            local maxStoredMessages = DeckSuiteCustomChat.maxMessages or 40
+
+            if #tab.messages >= maxStoredMessages + 10 then
+                local messagesToRemove = #tab.messages - maxStoredMessages
+                for _ = 1, messagesToRemove do
+                    table.remove(tab.messages, 1)
+                end
+                tab.needsRedraw = true
             end
 
             if tabIndex == DeckSuiteCustomChat.activeTabIndex then
@@ -939,7 +955,7 @@ function DeckSuite_CreateCustomChatFrame()
     messageFrame:SetPoint("BOTTOMRIGHT", mainFrame, "BOTTOMRIGHT", -8, 8)
     messageFrame:SetFontObject(GameFontNormal)
     messageFrame:SetJustifyH("LEFT")
-    messageFrame:SetMaxLines(500)
+    messageFrame:SetMaxLines(2048)
     messageFrame:SetFading(false)
     messageFrame:SetInsertMode("BOTTOM")
 
@@ -980,12 +996,25 @@ function DeckSuite_UpdateChatDisplay()
 
     local messageFrame = DeckSuiteMainChatFrame.messageFrame
 
-    for i = activeTab.lastDisplayedCount + 1, #activeTab.messages do
-        local msg = activeTab.messages[i]
-        messageFrame:AddMessage(msg.text, msg.r, msg.g, msg.b)
+    if activeTab.needsRedraw or activeTab.lastDisplayedCount < 0 then
+        messageFrame:Clear()
+        for i = 1, #activeTab.messages do
+            local msg = activeTab.messages[i]
+            if msg and msg.text then
+                messageFrame:AddMessage(msg.text, msg.r or 1, msg.g or 1, msg.b or 1)
+            end
+        end
+        activeTab.lastDisplayedCount = #activeTab.messages
+        activeTab.needsRedraw = false
+    else
+        for i = activeTab.lastDisplayedCount + 1, #activeTab.messages do
+            local msg = activeTab.messages[i]
+            if msg and msg.text then
+                messageFrame:AddMessage(msg.text, msg.r or 1, msg.g or 1, msg.b or 1)
+            end
+        end
+        activeTab.lastDisplayedCount = #activeTab.messages
     end
-
-    activeTab.lastDisplayedCount = #activeTab.messages
 end
 
 function DeckSuite_ConvertRaidIcons(text)
